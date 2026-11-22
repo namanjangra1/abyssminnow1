@@ -1,0 +1,3834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Abyss Minnow — Deep Ocean Survival</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================================
+       ABYSS MINNOW — CORE STYLES & GLASSMORPHIC UI
+       ========================================================================= */
+    :root {
+      --bg-deep: #030b17;
+      --glass-bg: rgba(7, 23, 42, 0.58);
+      --glass-bg-strong: rgba(5, 17, 34, 0.82);
+      --glass-border: rgba(56, 224, 240, 0.28);
+      --glass-border-bright: rgba(103, 242, 255, 0.55);
+      --cyan: #38e0f0;
+      --cyan-bright: #80f7ff;
+      --teal: #14b8a6;
+      --gold: #fbbf24;
+      --coral: #fb7185;
+      --crimson: #ef4444;
+      --text-main: #eef9ff;
+      --text-muted: #93bfd4;
+      --shadow-glow: 0 0 24px rgba(56, 224, 240, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-deep);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-main);
+      touch-action: none;
+    }
+
+    /* Fullscreen Game Canvas */
+    #gameCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      cursor: crosshair;
+    }
+
+    /* Glassmorphic Utility */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-modal {
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-border-bright);
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65), 0 0 40px rgba(56, 224, 240, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: inherit;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      border: 1px solid transparent;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%);
+      color: #031521;
+      padding: 15px 38px;
+      font-size: 1.15rem;
+      box-shadow: 0 10px 28px rgba(6, 182, 212, 0.42), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 14px 36px rgba(56, 224, 240, 0.58), inset 0 1px 1px rgba(255, 255, 255, 0.65);
+    }
+
+    .btn-secondary {
+      background: rgba(14, 42, 68, 0.68);
+      color: var(--text-main);
+      border-color: var(--glass-border);
+      padding: 12px 24px;
+      font-size: 0.98rem;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(20, 62, 98, 0.85);
+      border-color: var(--glass-border-bright);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .btn-icon {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 12px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-icon:hover {
+      background: rgba(18, 56, 88, 0.8);
+      border-color: var(--glass-border-bright);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .btn-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* =========================================================================
+       OVERLAY LAYERS
+       ========================================================================= */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.32s ease;
+    }
+
+    .overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .overlay-backdrop {
+      background: radial-gradient(circle at center, rgba(3, 14, 28, 0.32) 0%, rgba(2, 8, 18, 0.72) 100%);
+    }
+
+    /* =========================================================================
+       START SCREEN
+       ========================================================================= */
+    #startScreen {
+      flex-direction: column;
+      background: radial-gradient(circle at 50% 40%, rgba(6, 30, 54, 0.18) 0%, rgba(2, 10, 22, 0.65) 100%);
+    }
+
+    .title-card {
+      text-align: center;
+      max-width: 520px;
+      width: 100%;
+      padding: 36px 32px 32px;
+      animation: floatCard 5s ease-in-out infinite;
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(56, 224, 240, 0.12);
+      border: 1px solid rgba(56, 224, 240, 0.35);
+      color: var(--cyan-bright);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .game-title {
+      font-size: clamp(2.6rem, 7vw, 4.1rem);
+      font-weight: 800;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      background: linear-gradient(180deg, #ffffff 10%, #8bf5ff 55%, #14b8a6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 6px 24px rgba(56, 224, 240, 0.38));
+      margin-bottom: 10px;
+    }
+
+    .game-subtitle {
+      color: var(--text-muted);
+      font-size: 1.02rem;
+      font-weight: 400;
+      line-height: 1.45;
+      margin-bottom: 24px;
+    }
+
+    .best-score-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px;
+      border-radius: 12px;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.32);
+      color: #fde68a;
+      font-size: 0.92rem;
+      font-weight: 600;
+      margin-bottom: 26px;
+    }
+
+    .best-score-pill strong {
+      color: var(--gold);
+      font-size: 1.08rem;
+      font-weight: 800;
+    }
+
+    .menu-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .menu-actions .btn-primary {
+      width: 100%;
+      max-width: 280px;
+      animation: pulseCta 2.6s ease-in-out infinite;
+    }
+
+    @keyframes pulseCta {
+      0%, 100% { box-shadow: 0 10px 28px rgba(6, 182, 212, 0.42), 0 0 0 0 rgba(56, 224, 240, 0.35); }
+      50% { box-shadow: 0 12px 34px rgba(6, 182, 212, 0.6), 0 0 0 10px rgba(56, 224, 240, 0); }
+    }
+
+    .menu-secondary-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .menu-secondary-row .btn-secondary {
+      flex: 1;
+      padding: 11px 14px;
+      font-size: 0.92rem;
+    }
+
+    .cta-hint {
+      margin-top: 20px;
+      font-size: 0.82rem;
+      color: rgba(147, 191, 212, 0.78);
+      letter-spacing: 0.03em;
+    }
+
+    /* =========================================================================
+       GAMEPLAY HUD (Pointer-events-none wrapper so it never blocks canvas)
+       ========================================================================= */
+    #hud {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    #hud.visible {
+      opacity: 1;
+    }
+
+    .hud-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+    }
+
+    /* Left HUD: Score & Zone */
+    .hud-score-panel {
+      padding: 10px 16px;
+      min-width: 168px;
+    }
+
+    .score-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .score-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      line-height: 1.1;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 16px rgba(56, 224, 240, 0.35);
+      transition: transform 0.12s ease;
+    }
+
+    .score-value.pop {
+      transform: scale(1.12);
+      color: var(--cyan-bright);
+    }
+
+    .score-subrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 4px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .score-best-val {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .zone-pill {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--cyan-bright);
+    }
+
+    .zone-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    /* Center HUD: Evolution Progress & Combo */
+    .hud-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      max-width: 310px;
+    }
+
+    .growth-panel {
+      width: 100%;
+      padding: 10px 15px;
+    }
+
+    .growth-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 0.8rem;
+    }
+
+    .stage-name {
+      font-weight: 700;
+      color: var(--cyan-bright);
+      letter-spacing: 0.03em;
+    }
+
+    .stage-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(56, 224, 240, 0.16);
+      color: var(--cyan-bright);
+      border: 1px solid rgba(56, 224, 240, 0.35);
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(2, 12, 24, 0.75);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .bar-fill-growth {
+      background: linear-gradient(90deg, #0ea5e9, #38e0f0, #5eead4);
+      box-shadow: 0 0 12px rgba(56, 224, 240, 0.6);
+    }
+
+    /* Combo Pill */
+    .combo-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 16px;
+      border-radius: 14px;
+      background: rgba(24, 18, 4, 0.72);
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      box-shadow: 0 0 20px rgba(251, 191, 36, 0.25);
+      opacity: 0;
+      transform: translateY(-6px) scale(0.92);
+      transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+      min-width: 150px;
+    }
+
+    .combo-pill.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .combo-text {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .combo-timer-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .combo-timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #f59e0b, #fde047);
+      border-radius: 999px;
+    }
+
+    /* Right HUD: Controls */
+    .hud-controls {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    /* Bottom HUD: Stamina / Dash & Mobile Dash Button */
+    .hud-bottom {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+      padding-bottom: 4px;
+    }
+
+    .stamina-panel {
+      width: 240px;
+      padding: 10px 14px;
+    }
+
+    .stamina-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .dash-status {
+      color: var(--cyan-bright);
+    }
+
+    .dash-status.cooldown {
+      color: var(--gold);
+    }
+
+    .bar-fill-stamina {
+      background: linear-gradient(90deg, #06b6d4, #38bdf8, #a5f3fc);
+      box-shadow: 0 0 10px rgba(56, 224, 240, 0.5);
+    }
+
+    /* Mobile / Touch Dash Button */
+    #mobileDashBtn {
+      position: fixed;
+      right: 22px;
+      bottom: 24px;
+      z-index: 12;
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, rgba(56, 224, 240, 0.35), rgba(6, 26, 48, 0.82));
+      border: 2px solid var(--cyan);
+      color: #ffffff;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      box-shadow: 0 8px 26px rgba(6, 182, 212, 0.42), inset 0 0 14px rgba(56, 224, 240, 0.25);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.2s ease, border-color 0.2s ease;
+    }
+
+    #mobileDashBtn:active {
+      transform: scale(0.92);
+    }
+
+    #mobileDashBtn.on-cooldown {
+      opacity: 0.55;
+      border-color: var(--text-muted);
+    }
+
+    /* Discovery / Evolution Banner */
+    #eventBanner {
+      position: fixed;
+      top: 108px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-16px) scale(0.92);
+      z-index: 15;
+      pointer-events: none;
+      padding: 10px 24px;
+      border-radius: 999px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+    }
+
+    #eventBanner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    #eventBannerTitle {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cyan-bright);
+    }
+
+    #eventBannerSub {
+      font-size: 0.78rem;
+      color: var(--text-main);
+      opacity: 0.9;
+    }
+
+    /* =========================================================================
+       MODALS (Pause, Game Over, How To Play)
+       ========================================================================= */
+    .modal-card {
+      width: 100%;
+      max-width: 460px;
+      padding: 30px 28px;
+      text-align: center;
+      transform: translateY(12px) scale(0.97);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .overlay.visible .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      background: linear-gradient(180deg, #ffffff, #7ef2ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .modal-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 22px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-buttons .btn {
+      width: 100%;
+    }
+
+    /* Game Over Stats Grid */
+    .new-best-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(251, 191, 36, 0.18);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      animation: pulseCta 2s infinite;
+    }
+
+    .final-score-box {
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(6, 26, 48, 0.7);
+      border: 1px solid var(--glass-border);
+      margin-bottom: 14px;
+    }
+
+    .final-score-num {
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.05;
+      color: #ffffff;
+      text-shadow: 0 0 22px rgba(56, 224, 240, 0.45);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      text-align: left;
+    }
+
+    .stat-item {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(10, 32, 56, 0.58);
+      border: 1px solid rgba(56, 224, 240, 0.16);
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-val {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    /* How To Play Modal */
+    .howto-card {
+      max-width: 560px;
+      text-align: left;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+
+    .howto-list {
+      display: grid;
+      gap: 12px;
+      margin: 16px 0 22px;
+    }
+
+    .howto-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(10, 32, 56, 0.56);
+      border: 1px solid rgba(56, 224, 240, 0.18);
+    }
+
+    .howto-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      background: rgba(56, 224, 240, 0.14);
+      border: 1px solid rgba(56, 224, 240, 0.3);
+    }
+
+    .howto-item h4 {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--cyan-bright);
+      margin-bottom: 3px;
+    }
+
+    .howto-item p {
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    .key-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    /* =========================================================================
+       RESPONSIVE ADJUSTMENTS
+       ========================================================================= */
+    @media (max-width: 720px) {
+      #hud {
+        padding: 10px;
+      }
+
+      .hud-score-panel {
+        min-width: 126px;
+        padding: 8px 11px;
+      }
+
+      .score-value {
+        font-size: 1.35rem;
+      }
+
+      .hud-center {
+        max-width: 175px;
+      }
+
+      .growth-panel {
+        padding: 8px 10px;
+      }
+
+      .stage-name {
+        font-size: 0.72rem;
+      }
+
+      .hud-bottom {
+        justify-content: flex-start;
+        padding-left: 4px;
+        padding-bottom: 10px;
+      }
+
+      .stamina-panel {
+        width: 175px;
+        padding: 8px 11px;
+      }
+
+      .title-card {
+        padding: 26px 20px;
+      }
+
+      .modal-card {
+        padding: 24px 18px;
+      }
+
+      #mobileDashBtn.show-touch {
+        display: flex;
+      }
+    }
+
+    /* Also show mobile dash button on any coarse pointer (tablets/phones) */
+    @media (pointer: coarse) {
+      #mobileDashBtn.show-touch {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Interactive Ocean Canvas -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- =====================================================================
+       IN-GAME HUD
+       ===================================================================== -->
+  <div id="hud" aria-hidden="true">
+    <div class="hud-top">
+      <!-- Score & Depth Zone -->
+      <div>
+        <div class="glass-panel hud-score-panel">
+          <div class="score-label">Score</div>
+          <div id="hudScore" class="score-value">0</div>
+          <div class="score-subrow">
+            <span>Best: <span id="hudBest" class="score-best-val">0</span></span>
+            <span id="hudDepth">0m</span>
+          </div>
+        </div>
+        <div class="glass-panel zone-pill">
+          <span id="zoneDot" class="zone-dot"></span>
+          <span id="hudZoneName">Sunlit Shallows</span>
+        </div>
+      </div>
+
+      <!-- Evolution Progress & Combo Multiplier -->
+      <div class="hud-center">
+        <div class="glass-panel growth-panel">
+          <div class="growth-header">
+            <span id="hudStageName" class="stage-name">Glass Fry</span>
+            <span id="hudStageBadge" class="stage-badge">Stage 1/5</span>
+          </div>
+          <div class="bar-track">
+            <div id="hudGrowthBar" class="bar-fill bar-fill-growth"></div>
+          </div>
+        </div>
+
+        <div id="hudComboPill" class="combo-pill">
+          <div id="hudComboText" class="combo-text">x2 FEEDING STREAK</div>
+          <div class="combo-timer-track">
+            <div id="hudComboTimer" class="combo-timer-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audio & Pause Controls -->
+      <div class="hud-controls">
+        <button id="hudMuteBtn" class="btn btn-icon" title="Toggle Sound" aria-label="Toggle Sound">
+          <svg id="hudMuteIcon" viewBox="0 0 24 24">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+        </button>
+        <button id="hudPauseBtn" class="btn btn-icon" title="Pause (Esc)" aria-label="Pause Game">
+          <svg viewBox="0 0 24 24">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Stamina / Dash Bar -->
+    <div class="hud-bottom">
+      <div class="glass-panel stamina-panel">
+        <div class="stamina-header">
+          <span>Dash Energy</span>
+          <span id="hudDashStatus" class="dash-status">READY [SPACE]</span>
+        </div>
+        <div class="bar-track">
+          <div id="hudStaminaBar" class="bar-fill bar-fill-stamina" style="width: 100%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile / Touch Dash Action Button -->
+  <button id="mobileDashBtn" aria-label="Dash">
+    <span>DASH</span>
+  </button>
+
+  <!-- Floating Event Banner (Evolution / Zone Discovery) -->
+  <div id="eventBanner" class="glass-panel">
+    <div id="eventBannerTitle">EVOLVED!</div>
+    <div id="eventBannerSub">Stage 2 — Reef Minnow</div>
+  </div>
+
+  <!-- =====================================================================
+       START MENU OVERLAY
+       ===================================================================== -->
+  <div id="startScreen" class="overlay visible">
+    <div class="glass-modal title-card">
+      <div class="logo-badge">Bioluminescent Ocean Survival</div>
+      <h1 class="game-title">ABYSS MINNOW</h1>
+      <p class="game-subtitle">
+        Start tiny in the sunlit shallows. Hunt glowing prey, ride ocean currents, outsmart deep-sea predators, and evolve into an ocean sovereign.
+      </p>
+
+      <div class="best-score-pill">
+        <span>Personal Best:</span>
+        <strong id="menuBestScore">0</strong>
+      </div>
+
+      <div class="menu-actions">
+        <button id="btnPlay" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+          PLAY NOW
+        </button>
+        <div class="menu-secondary-row">
+          <button id="btnMenuHowTo" class="btn btn-secondary">How to Play</button>
+          <button id="btnMenuSound" class="btn btn-secondary">Sound: ON</button>
+        </div>
+      </div>
+
+      <div class="cta-hint">
+        WASD / Arrows / Mouse / Touch to Swim &bull; Space or Shift to Dash
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       PAUSE OVERLAY
+       ===================================================================== -->
+  <div id="pauseScreen" class="overlay overlay-backdrop">
+    <div class="glass-modal modal-card">
+      <h2 class="modal-title">PAUSED</h2>
+      <p class="modal-subtitle">The deep ocean awaits your return.</p>
+      <div class="modal-buttons">
+        <button id="btnResume" class="btn btn-primary">Resume Swimming</button>
+        <button id="btnPauseRestart" class="btn btn-secondary">Restart Run</button>
+        <button id="btnPauseHowTo" class="btn btn-secondary">How to Play</button>
+        <button id="btnPauseMenu" class="btn btn-secondary">Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       GAME OVER OVERLAY
+       ===================================================================== -->
+  <div id="gameOverScreen" class="overlay overlay-backdrop">
+    <div class="glass-modal modal-card">
+      <div id="goNewBestBadge" class="new-best-badge" style="display: none;">NEW PERSONAL BEST!</div>
+      <h2 class="modal-title">SWALLOWED BY THE DEEP</h2>
+      <p id="goCause" class="modal-subtitle">Caught by a lurking predator.</p>
+
+      <div class="final-score-box">
+        <div class="score-label">Final Score</div>
+        <div id="goFinalScore" class="final-score-num">0</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Best Score</div>
+          <div id="goBestScore" class="stat-val">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Evolution Reached</div>
+          <div id="goStage" class="stat-val">Glass Fry</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Prey Eaten</div>
+          <div id="goPrey" class="stat-val">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Max Combo</div>
+          <div id="goMaxCombo" class="stat-val">x1</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Near-Misses</div>
+          <div id="goNearMisses" class="stat-val">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Time Survived</div>
+          <div id="goTime" class="stat-val">0:00</div>
+        </div>
+      </div>
+
+      <div class="modal-buttons">
+        <button id="btnPlayAgain" class="btn btn-primary">Play Again</button>
+        <button id="btnGameOverMenu" class="btn btn-secondary">Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       HOW TO PLAY MODAL
+       ===================================================================== -->
+  <div id="howToModal" class="overlay overlay-backdrop" style="z-index: 30;">
+    <div class="glass-modal modal-card howto-card">
+      <h2 class="modal-title" style="text-align: center;">HOW TO PLAY</h2>
+      <p class="modal-subtitle" style="text-align: center;">Master the ecosystem of Abyss Minnow</p>
+
+      <div class="howto-list">
+        <div class="howto-item">
+          <div class="howto-icon">🧭</div>
+          <div>
+            <h4>Fluid 360° Swimming &amp; Dash</h4>
+            <p>
+              Steer freely with <span class="key-tag">WASD</span>, <span class="key-tag">Arrows</span>, or your <strong>Mouse Pointer</strong> (touch &amp; drag on mobile). Press <span class="key-tag">SPACE</span>, <span class="key-tag">SHIFT</span>, or <span class="key-tag">Right-Click</span> to burst forward using Dash Energy.
+            </p>
+          </div>
+        </div>
+        <div class="howto-item">
+          <div class="howto-icon">✨</div>
+          <div>
+            <h4>Eat, Combo &amp; Evolve</h4>
+            <p>
+              Devour glowing plankton, krill, and fish smaller than you to grow across <strong>5 Evolution Stages</strong>. Eat rapidly within 3.5 seconds to chain a <strong>Feeding Streak</strong> up to <strong>x8 score</strong>!
+            </p>
+          </div>
+        </div>
+        <div class="howto-item">
+          <div class="howto-icon">🦈</div>
+          <div>
+            <h4>Predators &amp; Near-Misses</h4>
+            <p>
+              Larger creatures glow with a <strong>crimson/amber danger rim</strong> and flash their eyes before lunging. Narrowly dodging a predator awards a <strong>Near-Miss Bonus (+150)</strong> and restores Dash Energy.
+            </p>
+          </div>
+        </div>
+        <div class="howto-item">
+          <div class="howto-icon">🌊</div>
+          <div>
+            <h4>Ocean Currents, Pearls &amp; Depth Zones</h4>
+            <p>
+              Ride glowing <strong>Current Ribbons</strong> for speed boosts, hunt rare <strong>Golden Shimmerfish</strong> &amp; <strong>Bioluminescent Pearls</strong>, and dive deeper to discover 4 unique ocean zones for exploration bonuses.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <button id="btnCloseHowTo" class="btn btn-primary" style="width: 100%;">Got It!</button>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       GAME ENGINE & PROCEDURAL AUDIO SCRIPT
+       ===================================================================== -->
+  <script>
+    (() => {
+      'use strict';
+
+      /* =====================================================================
+         1. CONSTANTS, EVOLUTION STAGES & OCEAN ZONES
+         ===================================================================== */
+      const WORLD_MIN_Y = 60;
+      const WORLD_MAX_Y = 4200;
+
+      const STORAGE_KEYS = {
+        BEST_SCORE: 'abyss_minnow_best_score_v1',
+        BEST_STAGE: 'abyss_minnow_best_stage_v1',
+        MUTED: 'abyss_minnow_muted_v1'
+      };
+
+      const EVOLUTION_STAGES = [
+        { stage: 1, name: 'Glass Fry',       minGrowth: 0,    baseSize: 14, maxSpeed: 295, zoom: 1.06, colorMain: '#67e8f9', colorAccent: '#e0f2fe', glow: '#38e0f0' },
+        { stage: 2, name: 'Reef Minnow',     minGrowth: 110,  baseSize: 21, maxSpeed: 315, zoom: 0.96, colorMain: '#22d3ee', colorAccent: '#5eead4', glow: '#2dd4bf' },
+        { stage: 3, name: 'Glow Darter',     minGrowth: 300,  baseSize: 29, maxSpeed: 335, zoom: 0.86, colorMain: '#06b6d4', colorAccent: '#67e8f9', glow: '#38bdf8' },
+        { stage: 4, name: 'Abyssal Fin',     minGrowth: 600,  baseSize: 39, maxSpeed: 355, zoom: 0.77, colorMain: '#38bdf8', colorAccent: '#fcd34d', glow: '#7dd3fc' },
+        { stage: 5, name: 'Ocean Sovereign', minGrowth: 1020, baseSize: 51, maxSpeed: 375, zoom: 0.68, colorMain: '#2dd4bf', colorAccent: '#fde047', glow: '#5eead4' }
+      ];
+
+      const DEPTH_ZONES = [
+        {
+          id: 'shallows',
+          name: 'Sunlit Shallows',
+          minY: 0,
+          maxY: 1000,
+          topColor: [10, 88, 118],
+          botColor: [6, 46, 76],
+          accent: '#38e0f0',
+          bonus: 0
+        },
+        {
+          id: 'kelp',
+          name: 'Twilight Kelp Reef',
+          minY: 1000,
+          maxY: 2100,
+          topColor: [6, 46, 76],
+          botColor: [7, 24, 54],
+          accent: '#2dd4bf',
+          bonus: 250
+        },
+        {
+          id: 'trench',
+          name: 'Bioluminescent Trench',
+          minY: 2100,
+          maxY: 3200,
+          topColor: [7, 24, 54],
+          botColor: [11, 14, 40],
+          accent: '#818cf8',
+          bonus: 450
+        },
+        {
+          id: 'ruins',
+          name: 'Sunken Abyssal Ruins',
+          minY: 3200,
+          maxY: 4300,
+          topColor: [11, 14, 40],
+          botColor: [4, 7, 18],
+          accent: '#fbbf24',
+          bonus: 700
+        }
+      ];
+
+      // Fish Species Definitions
+      const SPECIES = {
+        plankton: {
+          name: 'Plankton Mote',
+          sizeMin: 4.5, sizeMax: 6.5,
+          speed: 28, score: 15, growth: 6, stamina: 6,
+          behavior: 'drift',
+          zones: [0, 1, 2, 3]
+        },
+        krill: {
+          name: 'Shimmer Krill',
+          sizeMin: 8.5, sizeMax: 10.5,
+          speed: 130, score: 35, growth: 14, stamina: 10,
+          behavior: 'school_flee',
+          zones: [0, 1, 2]
+        },
+        tetra: {
+          name: 'Darting Tetra',
+          sizeMin: 13.5, sizeMax: 16.5,
+          speed: 185, score: 65, growth: 22, stamina: 13,
+          behavior: 'school_flee',
+          zones: [0, 1, 2]
+        },
+        golden: {
+          name: 'Golden Shimmerfish',
+          sizeMin: 13, sizeMax: 15,
+          speed: 265, score: 300, growth: 36, stamina: 35,
+          behavior: 'evasive_rare',
+          rare: true,
+          zones: [0, 1, 2, 3]
+        },
+        jellyfish: {
+          name: 'Lantern Jellyfish',
+          sizeMin: 22, sizeMax: 26,
+          speed: 62, score: 135, growth: 38, stamina: 20,
+          behavior: 'jelly_pulse',
+          zones: [1, 2, 3]
+        },
+        barracuda: {
+          name: 'Sleek Barracuda',
+          sizeMin: 30, sizeMax: 35,
+          speed: 210, lungeSpeed: 375, score: 240, growth: 56, stamina: 26,
+          behavior: 'predator',
+          zones: [0, 1, 2]
+        },
+        angler: {
+          name: 'Abyssal Anglerfish',
+          sizeMin: 41, sizeMax: 47,
+          speed: 175, lungeSpeed: 345, score: 380, growth: 80, stamina: 32,
+          behavior: 'predator',
+          zones: [2, 3]
+        },
+        shark: {
+          name: 'Deep Shadow Shark',
+          sizeMin: 56, sizeMax: 62,
+          speed: 205, lungeSpeed: 385, score: 650, growth: 110, stamina: 45,
+          behavior: 'predator',
+          zones: [1, 2, 3]
+        }
+      };
+
+      /* =====================================================================
+         2. PROCEDURAL WEB AUDIO ENGINE
+         ===================================================================== */
+      class SoundEngine {
+        constructor() {
+          this.ctx = null;
+          this.masterGain = null;
+          this.ambientGain = null;
+          this.isMuted = this._loadMutePref();
+          this.initialized = false;
+        }
+
+        _loadMutePref() {
+          try {
+            return localStorage.getItem(STORAGE_KEYS.MUTED) === 'true';
+          } catch {
+            return false;
+          }
+        }
+
+        _saveMutePref() {
+          try {
+            localStorage.setItem(STORAGE_KEYS.MUTED, String(this.isMuted));
+          } catch { /* ignore storage errors */ }
+        }
+
+        init() {
+          if (this.initialized) {
+            if (this.ctx && this.ctx.state === 'suspended') {
+              this.ctx.resume().catch(() => {});
+            }
+            return;
+          }
+          try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            this.ctx = new AudioCtx();
+
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.value = this.isMuted ? 0 : 0.72;
+            this.masterGain.connect(this.ctx.destination);
+
+            this._startAmbientBed();
+            this.initialized = true;
+          } catch (err) {
+            console.warn('Web Audio unavailable:', err);
+          }
+        }
+
+        _startAmbientBed() {
+          if (!this.ctx) return;
+          // Gentle underwater filtered noise
+          const bufferSize = this.ctx.sampleRate * 3;
+          const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          let lastOut = 0.0;
+          for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            output[i] = (lastOut + 0.02 * white) / 1.02;
+            lastOut = output[i];
+            output[i] *= 2.5;
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = noiseBuffer;
+          noise.loop = true;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 260;
+
+          // Subtle LFO modulating underwater current filter
+          const lfo = this.ctx.createOscillator();
+          const lfoGain = this.ctx.createGain();
+          lfo.frequency.value = 0.14;
+          lfoGain.gain.value = 90;
+          lfo.connect(lfoGain);
+          lfoGain.connect(filter.frequency);
+          lfo.start();
+
+          // Soft sub-harmonic ocean pad
+          const subOsc = this.ctx.createOscillator();
+          subOsc.type = 'sine';
+          subOsc.frequency.value = 55;
+          const subGain = this.ctx.createGain();
+          subGain.gain.value = 0.055;
+          subOsc.connect(subGain);
+
+          this.ambientGain = this.ctx.createGain();
+          this.ambientGain.gain.value = 0.12;
+
+          noise.connect(filter);
+          filter.connect(this.ambientGain);
+          subGain.connect(this.ambientGain);
+          this.ambientGain.connect(this.masterGain);
+
+          noise.start();
+          subOsc.start();
+        }
+
+        toggleMute() {
+          this.isMuted = !this.isMuted;
+          this._saveMutePref();
+          if (this.masterGain && this.ctx) {
+            const now = this.ctx.currentTime;
+            this.masterGain.gain.cancelScheduledValues(now);
+            this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : 0.72, now, 0.04);
+          }
+          return this.isMuted;
+        }
+
+        playEat(combo = 1) {
+          if (!this.initialized || this.isMuted || !this.ctx) return;
+          const now = this.ctx.currentTime;
+          // Ascending pentatonic chime pitch based on combo
+          const scale = [1, 1.125, 1.25, 1.5, 1.667, 2.0, 2.25, 2.5];
+          const mult = scale[Math.min(combo - 1, scale.length - 1)];
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(340 * mult, now);
+          osc.frequency.exponentialRampToValueAtTime(590 * mult, now + 0.09);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.18, now + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.17);
+        }
+
+        playDash() {
+          if (!this.initialized || this.isMuted || !this.ctx) return;
+          const now = this.ctx.currentTime;
+
+          // Watery jet burst
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(240, now);
+          osc.frequency.exponentialRampToValueAtTime(75, now + 0.22);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.22, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.25);
+
+          // Filtered bubble whoosh
+          const bufLen = Math.floor(this.ctx.sampleRate * 0.22);
+          const buf = this.ctx.createBuffer(1, bufLen, this.ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buf;
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(950, now);
+          filter.frequency.exponentialRampToValueAtTime(280, now + 0.22);
+          filter.Q.value = 1.6;
+
+          const nGain = this.ctx.createGain();
+          nGain.gain.setValueAtTime(0.16, now);
+          nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+          noise.connect(filter);
+          filter.connect(nGain);
+          nGain.connect(this.masterGain);
+          noise.start(now);
+        }
+
+        playBonusChord() {
+          if (!this.initialized || this.isMuted || !this.ctx) return;
+          const now = this.ctx.currentTime;
+          const freqs = [523.25, 659.25, 783.99, 1046.5];
+          freqs.forEach((f, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            const t = now + idx * 0.055;
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.001, t);
+            gain.gain.linearRampToValueAtTime(0.12, t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(t);
+            osc.stop(t + 0.45);
+          });
+        }
+
+        playEvolution() {
+          if (!this.initialized || this.isMuted || !this.ctx) return;
+          const now = this.ctx.currentTime;
+          const freqs = [261.63, 329.63, 392.0, 523.25, 659.25, 783.99];
+          freqs.forEach((f, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = idx < 2 ? 'triangle' : 'sine';
+            const t = now + idx * 0.065;
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.001, t);
+            gain.gain.linearRampToValueAtTime(0.14, t + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(t);
+            osc.stop(t + 0.7);
+          });
+        }
+
+        playNearMiss() {
+          if (!this.initialized || this.isMuted || !this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(480, now);
+          osc.frequency.exponentialRampToValueAtTime(920, now + 0.14);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.13, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.24);
+        }
+
+        playWarning() {
+          if (!this.initialized || this.isMuted || !this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(195, now);
+          osc.frequency.exponentialRampToValueAtTime(140, now + 0.16);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.1, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        }
+
+        playGameOver() {
+          if (!this.initialized || this.isMuted || !this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(180, now);
+          osc.frequency.exponentialRampToValueAtTime(42, now + 0.75);
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(420, now);
+          filter.frequency.exponentialRampToValueAtTime(90, now + 0.75);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.24, now + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.82);
+        }
+      }
+
+      /* =====================================================================
+         3. UTILITY HELPERS
+         ===================================================================== */
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const rand = (min, max) => min + Math.random() * (max - min);
+      const distSq = (x1, y1, x2, y2) => (x2 - x1) ** 2 + (y2 - y1) ** 2;
+
+      function lerpAngle(a, b, t) {
+        let diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
+        if (diff < -Math.PI) diff += Math.PI * 2;
+        return a + diff * t;
+      }
+
+      function formatTime(seconds) {
+        const s = Math.max(0, Math.floor(seconds));
+        const m = Math.floor(s / 60);
+        const rem = s % 60;
+        return `${m}:${rem < 10 ? '0' : ''}${rem}`;
+      }
+
+      function getZoneForY(y) {
+        for (let i = 0; i < DEPTH_ZONES.length; i++) {
+          if (y < DEPTH_ZONES[i].maxY) return DEPTH_ZONES[i];
+        }
+        return DEPTH_ZONES[DEPTH_ZONES.length - 1];
+      }
+
+      function getZoneIndexForY(y) {
+        for (let i = 0; i < DEPTH_ZONES.length; i++) {
+          if (y < DEPTH_ZONES[i].maxY) return i;
+        }
+        return DEPTH_ZONES.length - 1;
+      }
+
+      /* =====================================================================
+         4. MAIN GAME ENGINE
+         ===================================================================== */
+      class AbyssMinnowGame {
+        constructor() {
+          this.canvas = document.getElementById('gameCanvas');
+          this.ctx = this.canvas.getContext('2d', { alpha: false });
+          this.audio = new SoundEngine();
+
+          // Display & Viewport
+          this.width = window.innerWidth;
+          this.height = window.innerHeight;
+          this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+          // Game State: 'MENU' | 'PLAYING' | 'PAUSED' | 'GAMEOVER'
+          this.state = 'MENU';
+          this.howToReturnState = 'MENU';
+
+          // Persistent Data
+          this.bestScore = this._loadNumber(STORAGE_KEYS.BEST_SCORE, 0);
+          this.bestStage = this._loadNumber(STORAGE_KEYS.BEST_STAGE, 1);
+
+          // Timing
+          this.lastTime = 0;
+          this.worldTime = 0;
+          this.runTime = 0;
+          this.slowMoTimer = 0;
+          this.deathDelayTimer = 0;
+
+          // Camera
+          this.cam = { x: 0, y: 450, zoom: 1.0, shake: 0 };
+
+          // Input State
+          this.keys = {};
+          this.inputMode = 'keyboard'; // 'keyboard' | 'mouse' | 'touch'
+          this.mouse = { x: 0, y: 0, active: false, down: false, lastX: 0, lastY: 0 };
+          this.touch = { active: false, id: null, startX: 0, startY: 0, curX: 0, curY: 0 };
+
+          // Entities & Pools
+          this.player = null;
+          this.creatures = [];
+          this.pearls = [];
+          this.currents = [];
+          this.particles = [];
+          this.floatingTexts = [];
+          this.shockwaves = [];
+          this.ambientMotes = [];
+
+          // Run Stats
+          this.score = 0;
+          this.combo = 1;
+          this.comboTimer = 0;
+          this.comboMaxDuration = 3.5;
+          this.maxCombo = 1;
+          this.preyEaten = 0;
+          this.nearMisses = 0;
+          this.discoveredZones = new Set(['shallows']);
+          this.deathCause = '';
+          this.dangerPulse = 0;
+          this.survivalScoreAcc = 0;
+          this.bannerTimer = 0;
+
+          // Cache DOM Elements
+          this._cacheDOM();
+          this._bindEvents();
+          this._resize();
+          this._syncMuteUI();
+          this._updateMenuBestScore();
+
+          // Initialize Demo World for Start Screen
+          this._initWorld(true);
+        }
+
+        _loadNumber(key, fallback) {
+          try {
+            const val = Number(localStorage.getItem(key));
+            return Number.isFinite(val) && val > 0 ? val : fallback;
+          } catch {
+            return fallback;
+          }
+        }
+
+        _saveNumber(key, val) {
+          try {
+            localStorage.setItem(key, String(Math.floor(val)));
+          } catch { /* ignore */ }
+        }
+
+        _cacheDOM() {
+          this.dom = {
+            hud: document.getElementById('hud'),
+            hudScore: document.getElementById('hudScore'),
+            hudBest: document.getElementById('hudBest'),
+            hudDepth: document.getElementById('hudDepth'),
+            hudZoneName: document.getElementById('hudZoneName'),
+            zoneDot: document.getElementById('zoneDot'),
+            hudStageName: document.getElementById('hudStageName'),
+            hudStageBadge: document.getElementById('hudStageBadge'),
+            hudGrowthBar: document.getElementById('hudGrowthBar'),
+            hudComboPill: document.getElementById('hudComboPill'),
+            hudComboText: document.getElementById('hudComboText'),
+            hudComboTimer: document.getElementById('hudComboTimer'),
+            hudStaminaBar: document.getElementById('hudStaminaBar'),
+            hudDashStatus: document.getElementById('hudDashStatus'),
+            hudMuteBtn: document.getElementById('hudMuteBtn'),
+            hudMuteIcon: document.getElementById('hudMuteIcon'),
+            hudPauseBtn: document.getElementById('hudPauseBtn'),
+            mobileDashBtn: document.getElementById('mobileDashBtn'),
+            eventBanner: document.getElementById('eventBanner'),
+            eventBannerTitle: document.getElementById('eventBannerTitle'),
+            eventBannerSub: document.getElementById('eventBannerSub'),
+
+            startScreen: document.getElementById('startScreen'),
+            menuBestScore: document.getElementById('menuBestScore'),
+            btnPlay: document.getElementById('btnPlay'),
+            btnMenuHowTo: document.getElementById('btnMenuHowTo'),
+            btnMenuSound: document.getElementById('btnMenuSound'),
+
+            pauseScreen: document.getElementById('pauseScreen'),
+            btnResume: document.getElementById('btnResume'),
+            btnPauseRestart: document.getElementById('btnPauseRestart'),
+            btnPauseHowTo: document.getElementById('btnPauseHowTo'),
+            btnPauseMenu: document.getElementById('btnPauseMenu'),
+
+            gameOverScreen: document.getElementById('gameOverScreen'),
+            goNewBestBadge: document.getElementById('goNewBestBadge'),
+            goCause: document.getElementById('goCause'),
+            goFinalScore: document.getElementById('goFinalScore'),
+            goBestScore: document.getElementById('goBestScore'),
+            goStage: document.getElementById('goStage'),
+            goPrey: document.getElementById('goPrey'),
+            goMaxCombo: document.getElementById('goMaxCombo'),
+            goNearMisses: document.getElementById('goNearMisses'),
+            goTime: document.getElementById('goTime'),
+            btnPlayAgain: document.getElementById('btnPlayAgain'),
+            btnGameOverMenu: document.getElementById('btnGameOverMenu'),
+
+            howToModal: document.getElementById('howToModal'),
+            btnCloseHowTo: document.getElementById('btnCloseHowTo')
+          };
+        }
+
+        _bindEvents() {
+          window.addEventListener('resize', () => this._resize());
+
+          // Keyboard
+          window.addEventListener('keydown', (e) => {
+            const code = e.code;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(code)) {
+              e.preventDefault();
+            }
+            this.keys[code] = true;
+
+            if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(code)) {
+              this.inputMode = 'keyboard';
+            }
+
+            if (code === 'Space' || code === 'ShiftLeft' || code === 'ShiftRight') {
+              if (this.state === 'PLAYING') {
+                this._triggerDash();
+              }
+            }
+
+            if (code === 'Escape' || code === 'KeyP') {
+              if (this.dom.howToModal.classList.contains('visible')) {
+                this._closeHowTo();
+              } else if (this.state === 'PLAYING') {
+                this.pauseGame();
+              } else if (this.state === 'PAUSED') {
+                this.resumeGame();
+              }
+            }
+          });
+
+          window.addEventListener('keyup', (e) => {
+            this.keys[e.code] = false;
+          });
+
+          // Mouse Controls on Canvas
+          this.canvas.addEventListener('mousemove', (e) => {
+            const dx = e.clientX - this.mouse.lastX;
+            const dy = e.clientY - this.mouse.lastY;
+            this.mouse.x = e.clientX;
+            this.mouse.y = e.clientY;
+            if (Math.hypot(dx, dy) > 8) {
+              this.mouse.lastX = e.clientX;
+              this.mouse.lastY = e.clientY;
+              this.mouse.active = true;
+              if (this.state === 'PLAYING') {
+                this.inputMode = 'mouse';
+              }
+            }
+          });
+
+          this.canvas.addEventListener('mousedown', (e) => {
+            this.audio.init();
+            if (this.state !== 'PLAYING') return;
+            if (e.button === 2) {
+              this._triggerDash();
+            } else if (e.button === 0) {
+              this.mouse.down = true;
+              this.mouse.active = true;
+              this.mouse.x = e.clientX;
+              this.mouse.y = e.clientY;
+              this.inputMode = 'mouse';
+            }
+          });
+
+          window.addEventListener('mouseup', () => {
+            this.mouse.down = false;
+          });
+
+          this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+          // Touch Controls on Canvas (Virtual Joystick)
+          this.canvas.addEventListener('touchstart', (e) => {
+            this.audio.init();
+            if (this.state !== 'PLAYING') return;
+            if (this.touch.active) return;
+            const t = e.changedTouches[0];
+            this.touch.active = true;
+            this.touch.id = t.identifier;
+            this.touch.startX = t.clientX;
+            this.touch.startY = t.clientY;
+            this.touch.curX = t.clientX;
+            this.touch.curY = t.clientY;
+            this.inputMode = 'touch';
+            this.dom.mobileDashBtn.classList.add('show-touch');
+          }, { passive: true });
+
+          this.canvas.addEventListener('touchmove', (e) => {
+            if (!this.touch.active) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              const t = e.changedTouches[i];
+              if (t.identifier === this.touch.id) {
+                this.touch.curX = t.clientX;
+                this.touch.curY = t.clientY;
+                break;
+              }
+            }
+          }, { passive: true });
+
+          const endTouch = (e) => {
+            if (!this.touch.active) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              if (e.changedTouches[i].identifier === this.touch.id) {
+                this.touch.active = false;
+                this.touch.id = null;
+                break;
+              }
+            }
+          };
+          this.canvas.addEventListener('touchend', endTouch, { passive: true });
+          this.canvas.addEventListener('touchcancel', endTouch, { passive: true });
+
+          // Mobile Dash Button
+          const handleDashTap = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.audio.init();
+            if (this.state === 'PLAYING') this._triggerDash();
+          };
+          this.dom.mobileDashBtn.addEventListener('touchstart', handleDashTap, { passive: false });
+          this.dom.mobileDashBtn.addEventListener('mousedown', handleDashTap);
+
+          // UI Buttons
+          this.dom.btnPlay.addEventListener('click', () => {
+            this.audio.init();
+            this.startNewRun();
+          });
+
+          this.dom.btnMenuHowTo.addEventListener('click', () => {
+            this.audio.init();
+            this._openHowTo('MENU');
+          });
+
+          this.dom.btnMenuSound.addEventListener('click', () => {
+            this.audio.init();
+            this.audio.toggleMute();
+            this._syncMuteUI();
+          });
+
+          this.dom.hudMuteBtn.addEventListener('click', () => {
+            this.audio.init();
+            this.audio.toggleMute();
+            this._syncMuteUI();
+          });
+
+          this.dom.hudPauseBtn.addEventListener('click', () => {
+            if (this.state === 'PLAYING') this.pauseGame();
+          });
+
+          this.dom.btnResume.addEventListener('click', () => this.resumeGame());
+          this.dom.btnPauseRestart.addEventListener('click', () => this.startNewRun());
+          this.dom.btnPauseHowTo.addEventListener('click', () => this._openHowTo('PAUSED'));
+          this.dom.btnPauseMenu.addEventListener('click', () => this.returnToMenu());
+
+          this.dom.btnPlayAgain.addEventListener('click', () => {
+            this.audio.init();
+            this.startNewRun();
+          });
+          this.dom.btnGameOverMenu.addEventListener('click', () => this.returnToMenu());
+
+          this.dom.btnCloseHowTo.addEventListener('click', () => this._closeHowTo());
+
+          // Pause cleanly if browser tab is hidden during gameplay
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden && this.state === 'PLAYING') {
+              this.pauseGame();
+            }
+          });
+        }
+
+        _resize() {
+          this.width = window.innerWidth;
+          this.height = window.innerHeight;
+          this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+          this.canvas.width = Math.floor(this.width * this.dpr);
+          this.canvas.height = Math.floor(this.height * this.dpr);
+        }
+
+        _syncMuteUI() {
+          const muted = this.audio.isMuted;
+          this.dom.btnMenuSound.textContent = muted ? 'Sound: OFF' : 'Sound: ON';
+          if (muted) {
+            this.dom.hudMuteIcon.innerHTML = `
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            `;
+          } else {
+            this.dom.hudMuteIcon.innerHTML = `
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            `;
+          }
+        }
+
+        _updateMenuBestScore() {
+          this.dom.menuBestScore.textContent = this.bestScore.toLocaleString();
+          this.dom.hudBest.textContent = this.bestScore.toLocaleString();
+        }
+
+        /* ===================================================================
+           5. STATE TRANSITIONS
+           =================================================================== */
+        _initWorld(isDemo = false) {
+          this.creatures = [];
+          this.pearls = [];
+          this.currents = [];
+          this.particles = [];
+          this.floatingTexts = [];
+          this.shockwaves = [];
+          this.ambientMotes = [];
+
+          this.player = {
+            x: 0,
+            y: 440,
+            vx: 80,
+            vy: 0,
+            angle: 0,
+            targetAngle: 0,
+            size: EVOLUTION_STAGES[0].baseSize,
+            targetSize: EVOLUTION_STAGES[0].baseSize,
+            growth: 0,
+            stageIdx: 0,
+            stamina: 100,
+            maxStamina: 100,
+            dashTimer: 0,
+            dashCooldown: 0,
+            tailPhase: 0,
+            alive: true,
+            invulnTimer: isDemo ? 9999 : 1.5,
+            eatAnim: 0
+          };
+
+          this.cam.x = this.player.x;
+          this.cam.y = this.player.y;
+          this.cam.zoom = EVOLUTION_STAGES[0].zoom;
+          this.cam.shake = 0;
+
+          // Seed ambient drifting motes
+          for (let i = 0; i < 65; i++) {
+            this.ambientMotes.push({
+              x: rand(-900, 900),
+              y: rand(-600, 600),
+              r: rand(1, 2.6),
+              speedY: rand(-14, -4),
+              driftX: rand(-8, 8),
+              alpha: rand(0.18, 0.55),
+              phase: rand(0, Math.PI * 2)
+            });
+          }
+
+          // Seed initial peaceful ecosystem around player
+          for (let i = 0; i < 36; i++) {
+            this._spawnCreature(true);
+          }
+
+          // Seed ocean currents
+          for (let i = 0; i < 5; i++) {
+            this._spawnCurrent(true);
+          }
+
+          // Seed bioluminescent pearls
+          for (let i = 0; i < 4; i++) {
+            this._spawnPearl(true);
+          }
+        }
+
+        startNewRun() {
+          this.score = 0;
+          this.combo = 1;
+          this.comboTimer = 0;
+          this.maxCombo = 1;
+          this.preyEaten = 0;
+          this.nearMisses = 0;
+          this.runTime = 0;
+          this.slowMoTimer = 0;
+          this.deathDelayTimer = 0;
+          this.dangerPulse = 0;
+          this.survivalScoreAcc = 0;
+          this.discoveredZones = new Set(['shallows']);
+          this.deathCause = '';
+          this.keys = {};
+          this.touch.active = false;
+
+          this._initWorld(false);
+
+          this.state = 'PLAYING';
+          this.dom.startScreen.classList.remove('visible');
+          this.dom.pauseScreen.classList.remove('visible');
+          this.dom.gameOverScreen.classList.remove('visible');
+          this.dom.howToModal.classList.remove('visible');
+          this.dom.hud.classList.add('visible');
+          this.dom.mobileDashBtn.classList.add('show-touch');
+
+          this._updateHUD();
+        }
+
+        pauseGame() {
+          if (this.state !== 'PLAYING') return;
+          this.state = 'PAUSED';
+          this.dom.pauseScreen.classList.add('visible');
+        }
+
+        resumeGame() {
+          if (this.state !== 'PAUSED') return;
+          this.state = 'PLAYING';
+          this.dom.pauseScreen.classList.remove('visible');
+          this.lastTime = performance.now();
+        }
+
+        returnToMenu() {
+          this.state = 'MENU';
+          this.dom.hud.classList.remove('visible');
+          this.dom.pauseScreen.classList.remove('visible');
+          this.dom.gameOverScreen.classList.remove('visible');
+          this.dom.howToModal.classList.remove('visible');
+          this.dom.mobileDashBtn.classList.remove('show-touch');
+          this.dom.startScreen.classList.add('visible');
+          this._updateMenuBestScore();
+          this._initWorld(true);
+        }
+
+        _openHowTo(fromState) {
+          this.howToReturnState = fromState;
+          this.dom.howToModal.classList.add('visible');
+        }
+
+        _closeHowTo() {
+          this.dom.howToModal.classList.remove('visible');
+        }
+
+        _triggerGameOver(predatorName) {
+          if (!this.player.alive) return;
+          this.player.alive = false;
+          this.deathCause = `Caught by a ${predatorName}.`;
+          this.slowMoTimer = 0.75;
+          this.deathDelayTimer = 0.85;
+          this.cam.shake = 16;
+          this.audio.playGameOver();
+
+          // Dramatic bioluminescent burst
+          for (let i = 0; i < 38; i++) {
+            const ang = rand(0, Math.PI * 2);
+            const spd = rand(60, 260);
+            this.particles.push({
+              x: this.player.x,
+              y: this.player.y,
+              vx: Math.cos(ang) * spd,
+              vy: Math.sin(ang) * spd,
+              r: rand(2.5, 6.5),
+              life: rand(0.5, 1.1),
+              maxLife: 1.1,
+              color: i % 2 === 0 ? '#67e8f9' : '#fb7185',
+              type: 'glow'
+            });
+          }
+          this.shockwaves.push({
+            x: this.player.x,
+            y: this.player.y,
+            r: this.player.size,
+            maxR: this.player.size * 5.2,
+            life: 0.6,
+            maxLife: 0.6,
+            color: '#fb7185'
+          });
+        }
+
+        _showGameOverModal() {
+          this.state = 'GAMEOVER';
+          this.dom.hud.classList.remove('visible');
+          this.dom.mobileDashBtn.classList.remove('show-touch');
+
+          const finalScore = Math.floor(this.score);
+          const isNewBest = finalScore > this.bestScore;
+          if (isNewBest) {
+            this.bestScore = finalScore;
+            this._saveNumber(STORAGE_KEYS.BEST_SCORE, this.bestScore);
+          }
+          const stageNum = EVOLUTION_STAGES[this.player.stageIdx].stage;
+          if (stageNum > this.bestStage) {
+            this.bestStage = stageNum;
+            this._saveNumber(STORAGE_KEYS.BEST_STAGE, this.bestStage);
+          }
+
+          this.dom.goNewBestBadge.style.display = isNewBest ? 'inline-block' : 'none';
+          this.dom.goCause.textContent = this.deathCause;
+          this.dom.goFinalScore.textContent = finalScore.toLocaleString();
+          this.dom.goBestScore.textContent = this.bestScore.toLocaleString();
+          this.dom.goStage.textContent = `${EVOLUTION_STAGES[this.player.stageIdx].name} (${stageNum}/5)`;
+          this.dom.goPrey.textContent = this.preyEaten.toLocaleString();
+          this.dom.goMaxCombo.textContent = `x${this.maxCombo}`;
+          this.dom.goNearMisses.textContent = String(this.nearMisses);
+          this.dom.goTime.textContent = formatTime(this.runTime);
+
+          this._updateMenuBestScore();
+          this.dom.gameOverScreen.classList.add('visible');
+        }
+
+        /* ===================================================================
+           6. GAMEPLAY ACTIONS & PROGRESSION
+           =================================================================== */
+        _triggerDash() {
+          const p = this.player;
+          if (!p || !p.alive) return;
+          if (p.dashCooldown > 0 || p.stamina < 28) return;
+
+          p.stamina = Math.max(0, p.stamina - 32);
+          p.dashTimer = 0.28;
+          p.dashCooldown = 0.62;
+          this.cam.shake = Math.max(this.cam.shake, 4.5);
+          this.audio.playDash();
+
+          const boostSpeed = EVOLUTION_STAGES[p.stageIdx].maxSpeed * 2.25;
+          p.vx = Math.cos(p.angle) * boostSpeed;
+          p.vy = Math.sin(p.angle) * boostSpeed;
+
+          // Bubble burst behind player
+          for (let i = 0; i < 14; i++) {
+            const spread = p.angle + Math.PI + rand(-0.65, 0.65);
+            const spd = rand(60, 190);
+            this.particles.push({
+              x: p.x - Math.cos(p.angle) * p.size * 0.8,
+              y: p.y - Math.sin(p.angle) * p.size * 0.8,
+              vx: Math.cos(spread) * spd,
+              vy: Math.sin(spread) * spd - 20,
+              r: rand(2, 5.5),
+              life: rand(0.35, 0.75),
+              maxLife: 0.75,
+              color: '#a5f3fc',
+              type: 'bubble'
+            });
+          }
+
+          this.shockwaves.push({
+            x: p.x,
+            y: p.y,
+            r: p.size * 0.8,
+            maxR: p.size * 2.8,
+            life: 0.28,
+            maxLife: 0.28,
+            color: '#67e8f9'
+          });
+        }
+
+        _addScore(basePoints, x, y, label = '', color = '#80f7ff', applyCombo = true) {
+          const mult = applyCombo ? this.combo : 1;
+          const total = Math.round(basePoints * mult);
+          this.score += total;
+
+          // Score pop animation
+          this.dom.hudScore.classList.remove('pop');
+          void this.dom.hudScore.offsetWidth;
+          this.dom.hudScore.classList.add('pop');
+          setTimeout(() => this.dom.hudScore.classList.remove('pop'), 130);
+
+          const text = label ? `${label} +${total}` : `+${total}`;
+          this.floatingTexts.push({
+            x,
+            y: y - 10,
+            vy: -48,
+            text,
+            color,
+            life: 1.05,
+            maxLife: 1.05,
+            scale: label ? 1.15 : 1.0
+          });
+        }
+
+        _addGrowth(amount) {
+          const p = this.player;
+          p.growth += amount;
+
+          // Check Evolution Stage Up
+          let newStageIdx = p.stageIdx;
+          for (let i = EVOLUTION_STAGES.length - 1; i >= 0; i--) {
+            if (p.growth >= EVOLUTION_STAGES[i].minGrowth) {
+              newStageIdx = i;
+              break;
+            }
+          }
+
+          if (newStageIdx > p.stageIdx) {
+            p.stageIdx = newStageIdx;
+            const stage = EVOLUTION_STAGES[newStageIdx];
+            p.targetSize = stage.baseSize;
+            p.stamina = p.maxStamina;
+            this.cam.shake = 9;
+            this.audio.playEvolution();
+
+            this._showBanner(`EVOLVED — STAGE ${stage.stage}`, stage.name);
+            this._addScore(250 * stage.stage, p.x, p.y - p.size - 16, 'EVOLUTION!', '#fde047', false);
+
+            this.shockwaves.push({
+              x: p.x,
+              y: p.y,
+              r: p.size,
+              maxR: p.size * 6.5,
+              life: 0.75,
+              maxLife: 0.75,
+              color: '#5eead4'
+            });
+            for (let i = 0; i < 28; i++) {
+              const a = (Math.PI * 2 * i) / 28;
+              const spd = rand(90, 220);
+              this.particles.push({
+                x: p.x,
+                y: p.y,
+                vx: Math.cos(a) * spd,
+                vy: Math.sin(a) * spd,
+                r: rand(2.5, 5.5),
+                life: rand(0.55, 1.0),
+                maxLife: 1.0,
+                color: i % 2 === 0 ? '#fde047' : '#67e8f9',
+                type: 'glow'
+              });
+            }
+          } else {
+            // Smooth intra-stage size scaling
+            const cur = EVOLUTION_STAGES[p.stageIdx];
+            const next = EVOLUTION_STAGES[p.stageIdx + 1];
+            if (next) {
+              const prog = clamp((p.growth - cur.minGrowth) / (next.minGrowth - cur.minGrowth), 0, 1);
+              p.targetSize = lerp(cur.baseSize, next.baseSize * 0.92, prog);
+            } else {
+              // Stage 5 gentle apex growth cap
+              const extra = clamp((p.growth - cur.minGrowth) / 900, 0, 1);
+              p.targetSize = cur.baseSize + extra * 11;
+            }
+          }
+        }
+
+        _showBanner(title, subtitle) {
+          this.dom.eventBannerTitle.textContent = title;
+          this.dom.eventBannerSub.textContent = subtitle;
+          this.dom.eventBanner.classList.add('show');
+          this.bannerTimer = 2.6;
+        }
+
+        /* ===================================================================
+           7. SPAWNING & ECOSYSTEM POPULATION
+           =================================================================== */
+        _spawnCreature(initial = false) {
+          const viewW = this.width / this.cam.zoom;
+          const viewH = this.height / this.cam.zoom;
+
+          let x, y;
+          if (initial) {
+            x = this.cam.x + rand(-viewW * 0.85, viewW * 0.85);
+            y = clamp(this.cam.y + rand(-viewH * 0.75, viewH * 0.75), WORLD_MIN_Y + 40, WORLD_MAX_Y - 80);
+          } else {
+            // Spawn around camera perimeter — never on top of player
+            const side = Math.floor(Math.random() * 4);
+            const pad = 120;
+            if (side === 0) { // Left
+              x = this.cam.x - viewW * 0.5 - rand(pad, pad + 260);
+              y = this.cam.y + rand(-viewH * 0.65, viewH * 0.65);
+            } else if (side === 1) { // Right
+              x = this.cam.x + viewW * 0.5 + rand(pad, pad + 260);
+              y = this.cam.y + rand(-viewH * 0.65, viewH * 0.65);
+            } else if (side === 2) { // Top
+              x = this.cam.x + rand(-viewW * 0.7, viewW * 0.7);
+              y = this.cam.y - viewH * 0.5 - rand(pad, pad + 220);
+            } else { // Bottom
+              x = this.cam.x + rand(-viewW * 0.7, viewW * 0.7);
+              y = this.cam.y + viewH * 0.5 + rand(pad, pad + 220);
+            }
+            y = clamp(y, WORLD_MIN_Y + 35, WORLD_MAX_Y - 70);
+          }
+
+          // Pick species based on depth zone, player stage, and difficulty
+          const zoneIdx = getZoneIndexForY(y);
+          const stage = this.player ? this.player.stageIdx + 1 : 1;
+          const difficulty = clamp(this.runTime / 140, 0, 1);
+
+          let type = 'plankton';
+          const roll = Math.random();
+
+          if (initial) {
+            // Initial spawn is friendly & rich in prey
+            if (roll < 0.48) type = 'plankton';
+            else if (roll < 0.78) type = 'krill';
+            else if (roll < 0.96) type = 'tetra';
+            else type = 'golden';
+          } else {
+            // Dynamic weighted spawn table
+            const predatorChance = clamp(0.14 + zoneIdx * 0.06 + difficulty * 0.1 + (stage - 1) * 0.025, 0.14, 0.36);
+            if (roll < 0.03) {
+              type = 'golden';
+            } else if (roll < 0.32) {
+              type = 'plankton';
+            } else if (roll < 0.54) {
+              type = 'krill';
+            } else if (roll < 0.74 - predatorChance * 0.5) {
+              type = 'tetra';
+            } else if (roll < 0.82 - predatorChance * 0.25 && zoneIdx >= 1) {
+              type = 'jellyfish';
+            } else {
+              // Predator selection by depth zone
+              const pRoll = Math.random();
+              if (zoneIdx === 0) {
+                type = pRoll < 0.85 ? 'barracuda' : 'shark';
+              } else if (zoneIdx === 1) {
+                type = pRoll < 0.62 ? 'barracuda' : (pRoll < 0.85 ? 'jellyfish' : 'shark');
+              } else if (zoneIdx === 2) {
+                type = pRoll < 0.38 ? 'barracuda' : (pRoll < 0.76 ? 'angler' : 'shark');
+              } else {
+                type = pRoll < 0.45 ? 'angler' : 'shark';
+              }
+            }
+          }
+
+          // Safety check: never spawn a predator close to the player
+          const spec = SPECIES[type];
+          const size = rand(spec.sizeMin, spec.sizeMax);
+          if (this.player && size > this.player.size * 0.95) {
+            if (distSq(x, y, this.player.x, this.player.y) < 340 * 340) {
+              type = 'krill';
+            }
+          }
+
+          const finalSpec = SPECIES[type];
+          const finalSize = rand(finalSpec.sizeMin, finalSpec.sizeMax);
+          const angle = rand(0, Math.PI * 2);
+
+          this.creatures.push({
+            type,
+            spec: finalSpec,
+            x,
+            y,
+            vx: Math.cos(angle) * finalSpec.speed * 0.45,
+            vy: Math.sin(angle) * finalSpec.speed * 0.45,
+            angle,
+            size: finalSize,
+            tailPhase: rand(0, Math.PI * 2),
+            aiState: 'wander', // 'wander' | 'flee' | 'telegraph' | 'lunge' | 'cooldown'
+            aiTimer: rand(0.8, 2.5),
+            wanderAngle: angle,
+            nearMissCooldown: 0,
+            wasClosePredator: false,
+            hueShift: rand(-12, 12)
+          });
+        }
+
+        _spawnCurrent(initial = false) {
+          const viewW = this.width / this.cam.zoom;
+          const viewH = this.height / this.cam.zoom;
+          const x = initial
+            ? this.cam.x + rand(-viewW * 0.9, viewW * 0.9)
+            : this.cam.x + (Math.random() < 0.5 ? -1 : 1) * rand(viewW * 0.65, viewW * 1.15);
+          const y = clamp(this.cam.y + rand(-viewH * 0.8, viewH * 0.8), WORLD_MIN_Y + 140, WORLD_MAX_Y - 180);
+          const angle = rand(-0.35, 0.35) + (Math.random() < 0.5 ? 0 : Math.PI);
+          this.currents.push({
+            x,
+            y,
+            angle,
+            length: rand(340, 560),
+            width: rand(75, 110),
+            strength: rand(220, 310),
+            phase: rand(0, Math.PI * 2)
+          });
+        }
+
+        _spawnPearl(initial = false) {
+          const viewW = this.width / this.cam.zoom;
+          const viewH = this.height / this.cam.zoom;
+          const x = initial
+            ? this.cam.x + rand(-viewW * 0.85, viewW * 0.85)
+            : this.cam.x + (Math.random() < 0.5 ? -1 : 1) * rand(viewW * 0.6, viewW * 1.1);
+          const y = clamp(this.cam.y + rand(-viewH * 0.7, viewH * 0.7), WORLD_MIN_Y + 120, WORLD_MAX_Y - 100);
+          this.pearls.push({
+            x,
+            y,
+            r: 11,
+            phase: rand(0, Math.PI * 2)
+          });
+        }
+
+        /* ===================================================================
+           8. UPDATE LOOP
+           =================================================================== */
+        update(rawDt) {
+          // Freeze everything while paused
+          if (this.state === 'PAUSED') return;
+
+          // Slow-mo dramatic effect on death
+          let dt = rawDt;
+          if (this.slowMoTimer > 0) {
+            this.slowMoTimer -= rawDt;
+            dt = rawDt * 0.28;
+          }
+
+          this.worldTime += dt;
+
+          if (this.state === 'PLAYING') {
+            if (this.player.alive) {
+              this.runTime += rawDt;
+              // Gentle survival score tick
+              this.survivalScoreAcc += rawDt;
+              if (this.survivalScoreAcc >= 1.0) {
+                this.survivalScoreAcc -= 1.0;
+                this.score += 5;
+              }
+            } else {
+              this.deathDelayTimer -= rawDt;
+              if (this.deathDelayTimer <= 0) {
+                this._showGameOverModal();
+                return;
+              }
+            }
+          }
+
+          // Update Event Banner Timer
+          if (this.bannerTimer > 0) {
+            this.bannerTimer -= rawDt;
+            if (this.bannerTimer <= 0) {
+              this.dom.eventBanner.classList.remove('show');
+            }
+          }
+
+          // Update Combo Timer
+          if (this.combo > 1 && this.state === 'PLAYING') {
+            this.comboTimer -= rawDt;
+            if (this.comboTimer <= 0) {
+              this.combo = 1;
+              this.comboTimer = 0;
+            }
+          }
+
+          this._updatePlayer(dt);
+          this._updateCamera(dt);
+          this._updateEcosystem(dt);
+          this._updateParticles(dt);
+
+          if (this.state === 'PLAYING') {
+            this._updateHUD();
+          }
+        }
+
+        _updatePlayer(dt) {
+          const p = this.player;
+          if (!p || !p.alive) return;
+
+          const stage = EVOLUTION_STAGES[p.stageIdx];
+          p.size = lerp(p.size, p.targetSize, clamp(dt * 4.5, 0, 1));
+          if (p.invulnTimer > 0) p.invulnTimer -= dt;
+          if (p.eatAnim > 0) p.eatAnim = Math.max(0, p.eatAnim - dt * 5);
+
+          // Stamina & Dash Cooldown
+          if (p.dashCooldown > 0) p.dashCooldown = Math.max(0, p.dashCooldown - dt);
+          if (p.dashTimer > 0) {
+            p.dashTimer = Math.max(0, p.dashTimer - dt);
+            // Trail bubbles during dash
+            if (Math.random() < 0.6) {
+              this.particles.push({
+                x: p.x - Math.cos(p.angle) * p.size,
+                y: p.y - Math.sin(p.angle) * p.size,
+                vx: rand(-20, 20),
+                vy: rand(-35, -10),
+                r: rand(1.8, 4.2),
+                life: rand(0.3, 0.65),
+                maxLife: 0.65,
+                color: '#a5f3fc',
+                type: 'bubble'
+              });
+            }
+          } else {
+            p.stamina = Math.min(p.maxStamina, p.stamina + 19 * dt);
+          }
+
+          // Determine desired movement direction vector (ix, iy)
+          let ix = 0;
+          let iy = 0;
+
+          if (this.state === 'MENU' || this.state === 'GAMEOVER') {
+            // Peaceful autonomous swimming on title screen
+            const t = this.worldTime * 0.55;
+            ix = Math.cos(t * 0.7) * 0.85 + 0.35;
+            iy = Math.sin(t * 1.1) * 0.5;
+            if (p.y < 260) iy += 0.6;
+            if (p.y > 760) iy -= 0.6;
+          } else if (this.inputMode === 'touch' && this.touch.active) {
+            const dx = this.touch.curX - this.touch.startX;
+            const dy = this.touch.curY - this.touch.startY;
+            const d = Math.hypot(dx, dy);
+            if (d > 6) {
+              const mag = clamp(d / 64, 0, 1);
+              ix = (dx / d) * mag;
+              iy = (dy / d) * mag;
+            }
+          } else if (this.inputMode === 'mouse' && this.mouse.active) {
+            // Convert mouse screen pos to world pos
+            const worldMouseX = this.cam.x + (this.mouse.x - this.width * 0.5) / this.cam.zoom;
+            const worldMouseY = this.cam.y + (this.mouse.y - this.height * 0.5) / this.cam.zoom;
+            const dx = worldMouseX - p.x;
+            const dy = worldMouseY - p.y;
+            const d = Math.hypot(dx, dy);
+            if (d > 14) {
+              const mag = clamp((d - 14) / 110, 0.15, 1);
+              ix = (dx / d) * mag;
+              iy = (dy / d) * mag;
+            }
+          } else {
+            // Keyboard WASD / Arrow Keys
+            if (this.keys['KeyW'] || this.keys['ArrowUp']) iy -= 1;
+            if (this.keys['KeyS'] || this.keys['ArrowDown']) iy += 1;
+            if (this.keys['KeyA'] || this.keys['ArrowLeft']) ix -= 1;
+            if (this.keys['KeyD'] || this.keys['ArrowRight']) ix += 1;
+            const d = Math.hypot(ix, iy);
+            if (d > 1) {
+              ix /= d;
+              iy /= d;
+            }
+          }
+
+          // Apply swimming acceleration
+          const accel = p.dashTimer > 0 ? stage.maxSpeed * 1.8 : stage.maxSpeed * 4.2;
+          p.vx += ix * accel * dt;
+          p.vy += iy * accel * dt;
+
+          // Apply Ocean Current Push
+          for (let i = 0; i < this.currents.length; i++) {
+            const c = this.currents[i];
+            const dx = p.x - c.x;
+            const dy = p.y - c.y;
+            const cos = Math.cos(-c.angle);
+            const sin = Math.sin(-c.angle);
+            const localX = dx * cos - dy * sin;
+            const localY = dx * sin + dy * cos;
+            if (Math.abs(localX) < c.length * 0.5 && Math.abs(localY) < c.width * 0.55) {
+              p.vx += Math.cos(c.angle) * c.strength * 1.7 * dt;
+              p.vy += Math.sin(c.angle) * c.strength * 1.7 * dt;
+            }
+          }
+
+          // Smooth water drag
+          const drag = p.dashTimer > 0 ? Math.pow(0.28, dt) : Math.pow(0.045, dt);
+          p.vx *= drag;
+          p.vy *= drag;
+
+          // Clamp velocity
+          const speed = Math.hypot(p.vx, p.vy);
+          const cap = p.dashTimer > 0 ? stage.maxSpeed * 2.3 : stage.maxSpeed * 1.25;
+          if (speed > cap) {
+            p.vx = (p.vx / speed) * cap;
+            p.vy = (p.vy / speed) * cap;
+          }
+
+          // Move player
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+
+          // Soft world vertical boundaries (surface & abyss floor)
+          if (p.y < WORLD_MIN_Y) {
+            p.y = WORLD_MIN_Y;
+            p.vy = Math.max(0, p.vy * -0.2);
+          } else if (p.y > WORLD_MAX_Y) {
+            p.y = WORLD_MAX_Y;
+            p.vy = Math.min(0, p.vy * -0.2);
+          }
+
+          // Smooth facing angle & tail swish animation
+          if (speed > 16) {
+            const desiredAngle = Math.atan2(p.vy, p.vx);
+            p.angle = lerpAngle(p.angle, desiredAngle, clamp(dt * 11, 0, 1));
+          }
+          p.tailPhase += dt * (6.5 + speed * 0.042);
+
+          // Check Depth Zone Discovery
+          if (this.state === 'PLAYING') {
+            const zone = getZoneForY(p.y);
+            if (!this.discoveredZones.has(zone.id)) {
+              this.discoveredZones.add(zone.id);
+              if (zone.bonus > 0) {
+                this.audio.playBonusChord();
+                this._showBanner(`DISCOVERED: ${zone.name.toUpperCase()}`, `Exploration Bonus +${zone.bonus}`);
+                this._addScore(zone.bonus, p.x, p.y - p.size - 16, 'NEW ZONE!', zone.accent, false);
+              }
+            }
+          }
+        }
+
+        _updateCamera(dt) {
+          const p = this.player;
+          if (!p) return;
+
+          const stage = EVOLUTION_STAGES[p.stageIdx];
+          // Dynamic zoom slightly scales with screen size so mobile has fair sightlines
+          const screenScale = clamp(Math.min(this.width, this.height) / 760, 0.72, 1.08);
+          const targetZoom = stage.zoom * screenScale;
+          this.cam.zoom = lerp(this.cam.zoom, targetZoom, clamp(dt * 2.2, 0, 1));
+
+          // Subtle velocity look-ahead
+          const lookX = p.x + p.vx * 0.22;
+          const lookY = p.y + p.vy * 0.22;
+          this.cam.x = lerp(this.cam.x, lookX, clamp(dt * 5.2, 0, 1));
+          this.cam.y = lerp(this.cam.y, lookY, clamp(dt * 5.2, 0, 1));
+
+          // Keep camera nicely framed near surface/floor
+          const halfH = (this.height * 0.5) / this.cam.zoom;
+          this.cam.y = clamp(this.cam.y, WORLD_MIN_Y + halfH * 0.45, WORLD_MAX_Y - halfH * 0.35);
+
+          if (this.cam.shake > 0) {
+            this.cam.shake = Math.max(0, this.cam.shake - dt * 28);
+          }
+        }
+
+        _updateEcosystem(dt) {
+          const p = this.player;
+          const viewW = this.width / this.cam.zoom;
+          const viewH = this.height / this.cam.zoom;
+          const cullDist = Math.max(viewW, viewH) * 1.15 + 320;
+          const cullDistSq = cullDist * cullDist;
+
+          // Maintain target creature density
+          const targetCount = 46;
+          while (this.creatures.length < targetCount) {
+            this._spawnCreature(false);
+          }
+
+          // Maintain Ocean Currents
+          for (let i = this.currents.length - 1; i >= 0; i--) {
+            const c = this.currents[i];
+            c.phase += dt * 3.2;
+            if (distSq(c.x, c.y, this.cam.x, this.cam.y) > (cullDist + 300) ** 2) {
+              this.currents.splice(i, 1);
+            }
+          }
+          while (this.currents.length < 5) {
+            this._spawnCurrent(false);
+          }
+
+          // Update & Collect Bioluminescent Pearls
+          for (let i = this.pearls.length - 1; i >= 0; i--) {
+            const pearl = this.pearls[i];
+            pearl.phase += dt * 2.5;
+            if (distSq(pearl.x, pearl.y, this.cam.x, this.cam.y) > (cullDist + 200) ** 2) {
+              this.pearls.splice(i, 1);
+              continue;
+            }
+            if (this.state === 'PLAYING' && p.alive) {
+              const eatR = p.size + pearl.r + 12;
+              if (distSq(pearl.x, pearl.y, p.x, p.y) < eatR * eatR) {
+                this.pearls.splice(i, 1);
+                p.stamina = Math.min(p.maxStamina, p.stamina + 48);
+                this.audio.playBonusChord();
+                this._addScore(250, pearl.x, pearl.y, 'ABYSS PEARL!', '#fde047', false);
+                this._addGrowth(26);
+                this.shockwaves.push({
+                  x: pearl.x, y: pearl.y, r: 10, maxR: 85, life: 0.45, maxLife: 0.45, color: '#fde047'
+                });
+                for (let k = 0; k < 16; k++) {
+                  const a = rand(0, Math.PI * 2);
+                  const spd = rand(40, 140);
+                  this.particles.push({
+                    x: pearl.x, y: pearl.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
+                    r: rand(2, 4.5), life: rand(0.4, 0.8), maxLife: 0.8, color: '#fde047', type: 'glow'
+                  });
+                }
+              }
+            }
+          }
+          while (this.pearls.length < 4) {
+            this._spawnPearl(false);
+          }
+
+          // Update Creatures
+          let activeThreat = false;
+
+          for (let i = this.creatures.length - 1; i >= 0; i--) {
+            const c = this.creatures[i];
+            const dToCamSq = distSq(c.x, c.y, this.cam.x, this.cam.y);
+            if (dToCamSq > cullDistSq) {
+              this.creatures.splice(i, 1);
+              continue;
+            }
+
+            if (c.nearMissCooldown > 0) c.nearMissCooldown -= dt;
+
+            const dxToP = p.x - c.x;
+            const dyToP = p.y - c.y;
+            const dToP = Math.hypot(dxToP, dyToP);
+            const isEdible = p.size >= c.size * 0.92 || c.type === 'plankton' || c.type === 'golden';
+            const isDanger = !isEdible && this.state === 'PLAYING' && p.alive;
+
+            // AI Behavior
+            if (c.spec.behavior === 'drift') {
+              c.tailPhase += dt * 2.2;
+              c.vx = Math.cos(c.tailPhase * 0.7) * 16;
+              c.vy = Math.sin(c.tailPhase * 0.9) * 14;
+              // Gentle suction when player is very close
+              if (this.state === 'PLAYING' && p.alive && dToP < p.size + 42) {
+                const pull = 160 * dt;
+                c.x += (dxToP / Math.max(1, dToP)) * pull;
+                c.y += (dyToP / Math.max(1, dToP)) * pull;
+              }
+            } else if (c.spec.behavior === 'jelly_pulse') {
+              c.tailPhase += dt * 3.0;
+              const pulse = Math.max(0, Math.sin(c.tailPhase));
+              c.vy = lerp(c.vy, -pulse * 65 + 16, dt * 3);
+              c.vx = Math.sin(c.tailPhase * 0.4 + c.hueShift) * 22;
+              c.angle = -Math.PI * 0.5;
+            } else if (c.spec.behavior === 'school_flee' || c.spec.behavior === 'evasive_rare') {
+              const fleeDist = c.spec.rare ? 260 : 190;
+              if (this.state === 'PLAYING' && p.alive && dToP < fleeDist) {
+                const awayAngle = Math.atan2(-dyToP, -dxToP);
+                const spd = c.spec.speed * (c.spec.rare ? 1.15 : 1.05);
+                c.vx = lerp(c.vx, Math.cos(awayAngle) * spd, dt * 5.5);
+                c.vy = lerp(c.vy, Math.sin(awayAngle) * spd, dt * 5.5);
+              } else {
+                c.aiTimer -= dt;
+                if (c.aiTimer <= 0) {
+                  c.aiTimer = rand(1.2, 3.0);
+                  c.wanderAngle += rand(-1.1, 1.1);
+                }
+                const spd = c.spec.speed * 0.55;
+                c.vx = lerp(c.vx, Math.cos(c.wanderAngle) * spd, dt * 2.2);
+                c.vy = lerp(c.vy, Math.sin(c.wanderAngle) * spd, dt * 2.2);
+              }
+              // Rare golden fish leaves sparkling trail
+              if (c.spec.rare && Math.random() < 0.35) {
+                this.particles.push({
+                  x: c.x, y: c.y, vx: rand(-15, 15), vy: rand(-15, 15),
+                  r: rand(1.8, 3.5), life: 0.45, maxLife: 0.45, color: '#fde047', type: 'glow'
+                });
+              }
+            } else if (c.spec.behavior === 'predator') {
+              // If player is bigger, predator flees!
+              if (!isDanger && this.state === 'PLAYING' && p.alive && dToP < 240) {
+                c.aiState = 'flee';
+                const away = Math.atan2(-dyToP, -dxToP);
+                c.vx = lerp(c.vx, Math.cos(away) * c.spec.speed * 1.1, dt * 4);
+                c.vy = lerp(c.vy, Math.sin(away) * c.spec.speed * 1.1, dt * 4);
+              } else if (isDanger) {
+                const aggroRange = 330 + c.size * 2.2;
+                if (c.aiState === 'wander' || c.aiState === 'flee') {
+                  if (dToP < aggroRange && p.invulnTimer <= 0) {
+                    // Enter telegraphed windup before lunging
+                    c.aiState = 'telegraph';
+                    c.aiTimer = 0.55;
+                    this.audio.playWarning();
+                  } else {
+                    c.aiTimer -= dt;
+                    if (c.aiTimer <= 0) {
+                      c.aiTimer = rand(1.6, 3.6);
+                      c.wanderAngle += rand(-0.9, 0.9);
+                    }
+                    const spd = c.spec.speed * 0.62;
+                    c.vx = lerp(c.vx, Math.cos(c.wanderAngle) * spd, dt * 2.0);
+                    c.vy = lerp(c.vy, Math.sin(c.wanderAngle) * spd, dt * 2.0);
+                  }
+                } else if (c.aiState === 'telegraph') {
+                  activeThreat = true;
+                  const targetA = Math.atan2(dyToP, dxToP);
+                  c.angle = lerpAngle(c.angle, targetA, dt * 10);
+                  c.vx *= Math.pow(0.08, dt);
+                  c.vy *= Math.pow(0.08, dt);
+                  c.aiTimer -= dt;
+                  if (c.aiTimer <= 0) {
+                    c.aiState = 'lunge';
+                    c.aiTimer = 0.85;
+                    c.vx = Math.cos(c.angle) * c.spec.lungeSpeed;
+                    c.vy = Math.sin(c.angle) * c.spec.lungeSpeed;
+                  }
+                } else if (c.aiState === 'lunge') {
+                  activeThreat = true;
+                  const targetA = Math.atan2(dyToP, dxToP);
+                  // Mild steering during lunge so skilled players can dodge
+                  const curA = Math.atan2(c.vy, c.vx);
+                  const steered = lerpAngle(curA, targetA, dt * 1.65);
+                  const spd = Math.hypot(c.vx, c.vy);
+                  c.vx = Math.cos(steered) * spd;
+                  c.vy = Math.sin(steered) * spd;
+                  c.aiTimer -= dt;
+                  if (c.aiTimer <= 0 || dToP > aggroRange * 1.45) {
+                    c.aiState = 'cooldown';
+                    c.aiTimer = 1.1;
+                  }
+                } else if (c.aiState === 'cooldown') {
+                  c.vx *= Math.pow(0.35, dt);
+                  c.vy *= Math.pow(0.35, dt);
+                  c.aiTimer -= dt;
+                  if (c.aiTimer <= 0) {
+                    c.aiState = 'wander';
+                    c.wanderAngle = c.angle;
+                  }
+                }
+              } else {
+                // Demo / peaceful patrol
+                c.aiTimer -= dt;
+                if (c.aiTimer <= 0) {
+                  c.aiTimer = rand(1.5, 3.5);
+                  c.wanderAngle += rand(-0.8, 0.8);
+                }
+                const spd = c.spec.speed * 0.5;
+                c.vx = lerp(c.vx, Math.cos(c.wanderAngle) * spd, dt * 2);
+                c.vy = lerp(c.vy, Math.sin(c.wanderAngle) * spd, dt * 2);
+              }
+            }
+
+            // Integrate movement
+            c.x += c.vx * dt;
+            c.y = clamp(c.y + c.vy * dt, WORLD_MIN_Y + 24, WORLD_MAX_Y - 40);
+
+            if (c.spec.behavior !== 'jelly_pulse' && c.spec.behavior !== 'drift') {
+              const spd = Math.hypot(c.vx, c.vy);
+              if (spd > 12 && c.aiState !== 'telegraph') {
+                c.angle = lerpAngle(c.angle, Math.atan2(c.vy, c.vx), clamp(dt * 9, 0, 1));
+              }
+              c.tailPhase += dt * (5.5 + spd * 0.038);
+            }
+
+            // Player Interaction (Eating, Near-Misses, Predator Collision)
+            if (this.state === 'PLAYING' && p.alive) {
+              const hitDist = p.size * 0.82 + c.size * 0.78;
+
+              if (isEdible) {
+                const eatDist = p.size * 0.98 + c.size * 0.85 + (c.type === 'plankton' ? 8 : 4);
+                if (dToP < eatDist) {
+                  this._eatCreature(c, i);
+                  continue;
+                }
+              } else {
+                // Predator Collision (slightly forgiving hitbox)
+                if (p.invulnTimer <= 0 && dToP < hitDist * 0.86) {
+                  this._triggerGameOver(c.spec.name);
+                  return;
+                }
+
+                // Near-Miss Detection
+                const nearDist = hitDist + 46;
+                if (dToP < nearDist) {
+                  c.wasClosePredator = true;
+                } else if (c.wasClosePredator && dToP > nearDist + 14) {
+                  c.wasClosePredator = false;
+                  if (c.nearMissCooldown <= 0 && (c.aiState === 'lunge' || c.aiState === 'cooldown' || c.aiState === 'telegraph' || p.dashTimer > 0)) {
+                    c.nearMissCooldown = 3.2;
+                    this.nearMisses++;
+                    p.stamina = Math.min(p.maxStamina, p.stamina + 26);
+                    this.audio.playNearMiss();
+                    this._addScore(150, p.x, p.y - p.size - 12, 'NEAR MISS!', '#fde047', false);
+                    for (let k = 0; k < 10; k++) {
+                      const a = rand(0, Math.PI * 2);
+                      const spd = rand(50, 140);
+                      this.particles.push({
+                        x: p.x, y: p.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
+                        r: rand(2, 4), life: 0.45, maxLife: 0.45, color: '#fde047', type: 'glow'
+                      });
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // Smooth danger vignette pulse
+          this.dangerPulse = lerp(this.dangerPulse, activeThreat ? 1 : 0, clamp(dt * 4.5, 0, 1));
+        }
+
+        _eatCreature(c, index) {
+          this.creatures.splice(index, 1);
+          const p = this.player;
+          p.eatAnim = 1;
+          this.preyEaten++;
+
+          // Combo Streak
+          if (this.comboTimer > 0) {
+            this.combo = Math.min(8, this.combo + 1);
+          } else {
+            this.combo = 1;
+          }
+          this.comboTimer = this.comboMaxDuration;
+          if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+
+          // Energy, Score & Growth
+          p.stamina = Math.min(p.maxStamina, p.stamina + c.spec.stamina);
+          if (c.spec.rare) {
+            this.audio.playBonusChord();
+            this._addScore(c.spec.score, c.x, c.y, 'GOLDEN CATCH!', '#fde047', true);
+          } else {
+            this.audio.playEat(this.combo);
+            const label = this.combo >= 4 ? `x${this.combo}` : '';
+            this._addScore(c.spec.score, c.x, c.y, label, c.type === 'plankton' ? '#5eead4' : '#80f7ff', true);
+          }
+          this._addGrowth(c.spec.growth);
+
+          // Eating particle burst
+          const pCount = c.type === 'plankton' ? 5 : 11;
+          const pColor = c.spec.rare ? '#fde047' : '#67e8f9';
+          for (let k = 0; k < pCount; k++) {
+            const a = rand(0, Math.PI * 2);
+            const spd = rand(35, 130);
+            this.particles.push({
+              x: c.x, y: c.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
+              r: rand(1.8, 4.2), life: rand(0.28, 0.55), maxLife: 0.55, color: pColor, type: 'glow'
+            });
+          }
+        }
+
+        _updateParticles(dt) {
+          // Ambient motes wrap around camera
+          for (let i = 0; i < this.ambientMotes.length; i++) {
+            const m = this.ambientMotes[i];
+            m.phase += dt * 1.4;
+            m.x += (m.driftX + Math.sin(m.phase) * 8) * dt;
+            m.y += m.speedY * dt;
+            if (m.x < this.cam.x - 950) m.x += 1900;
+            if (m.x > this.cam.x + 950) m.x -= 1900;
+            if (m.y < this.cam.y - 650) m.y += 1300;
+            if (m.y > this.cam.y + 650) m.y -= 1300;
+          }
+
+          // Cap particle pool for rock-solid 60fps
+          if (this.particles.length > 220) {
+            this.particles.splice(0, this.particles.length - 220);
+          }
+          for (let i = this.particles.length - 1; i >= 0; i--) {
+            const pt = this.particles[i];
+            pt.life -= dt;
+            if (pt.life <= 0) {
+              this.particles.splice(i, 1);
+              continue;
+            }
+            pt.x += pt.vx * dt;
+            pt.y += pt.vy * dt;
+            pt.vx *= Math.pow(0.18, dt);
+            pt.vy *= Math.pow(0.18, dt);
+            if (pt.type === 'bubble') pt.vy -= 36 * dt;
+          }
+
+          // Shockwaves
+          for (let i = this.shockwaves.length - 1; i >= 0; i--) {
+            const s = this.shockwaves[i];
+            s.life -= dt;
+            if (s.life <= 0) {
+              this.shockwaves.splice(i, 1);
+              continue;
+            }
+            const t = 1 - s.life / s.maxLife;
+            s.r = lerp(s.r, s.maxR, clamp(dt * 8, 0, 1) + t * 0.04);
+          }
+
+          // Floating world-space texts
+          for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            const ft = this.floatingTexts[i];
+            ft.life -= dt;
+            if (ft.life <= 0) {
+              this.floatingTexts.splice(i, 1);
+              continue;
+            }
+            ft.y += ft.vy * dt;
+            ft.vy *= Math.pow(0.35, dt);
+          }
+        }
+
+        _updateHUD() {
+          const p = this.player;
+          if (!p) return;
+
+          this.dom.hudScore.textContent = Math.floor(this.score).toLocaleString();
+          const liveBest = Math.max(this.bestScore, Math.floor(this.score));
+          this.dom.hudBest.textContent = liveBest.toLocaleString();
+
+          const depthMeters = Math.max(0, Math.floor((p.y - WORLD_MIN_Y) * 0.25));
+          this.dom.hudDepth.textContent = `${depthMeters}m`;
+
+          const zone = getZoneForY(p.y);
+          this.dom.hudZoneName.textContent = zone.name;
+          this.dom.zoneDot.style.background = zone.accent;
+          this.dom.zoneDot.style.boxShadow = `0 0 8px ${zone.accent}`;
+
+          // Evolution Stage & Growth Bar
+          const stage = EVOLUTION_STAGES[p.stageIdx];
+          const nextStage = EVOLUTION_STAGES[p.stageIdx + 1];
+          this.dom.hudStageName.textContent = stage.name;
+          this.dom.hudStageBadge.textContent = `Stage ${stage.stage}/5`;
+
+          if (nextStage) {
+            const pct = clamp(((p.growth - stage.minGrowth) / (nextStage.minGrowth - stage.minGrowth)) * 100, 0, 100);
+            this.dom.hudGrowthBar.style.width = `${pct.toFixed(1)}%`;
+          } else {
+            this.dom.hudGrowthBar.style.width = '100%';
+          }
+
+          // Combo Pill
+          if (this.combo > 1 && this.comboTimer > 0) {
+            this.dom.hudComboPill.classList.add('active');
+            this.dom.hudComboText.textContent = `x${this.combo} FEEDING STREAK`;
+            const pct = clamp((this.comboTimer / this.comboMaxDuration) * 100, 0, 100);
+            this.dom.hudComboTimer.style.width = `${pct.toFixed(1)}%`;
+          } else {
+            this.dom.hudComboPill.classList.remove('active');
+          }
+
+          // Stamina & Dash Indicator
+          this.dom.hudStaminaBar.style.width = `${clamp((p.stamina / p.maxStamina) * 100, 0, 100).toFixed(1)}%`;
+          if (p.dashCooldown > 0) {
+            this.dom.hudDashStatus.textContent = `RECHARGING`;
+            this.dom.hudDashStatus.classList.add('cooldown');
+            this.dom.mobileDashBtn.classList.add('on-cooldown');
+          } else if (p.stamina < 28) {
+            this.dom.hudDashStatus.textContent = `LOW ENERGY`;
+            this.dom.hudDashStatus.classList.add('cooldown');
+            this.dom.mobileDashBtn.classList.add('on-cooldown');
+          } else {
+            this.dom.hudDashStatus.textContent = `READY [SPACE]`;
+            this.dom.hudDashStatus.classList.remove('cooldown');
+            this.dom.mobileDashBtn.classList.remove('on-cooldown');
+          }
+        }
+
+        /* ===================================================================
+           9. RENDERING ENGINE
+           =================================================================== */
+        render() {
+          const ctx = this.ctx;
+          ctx.save();
+          ctx.scale(this.dpr, this.dpr);
+
+          // 1. Depth-Interpolated Ocean Background Gradient
+          this._renderBackground(ctx);
+
+          // 2. Parallax Environment Layers (Sunbeams, Ruins, Kelp, Coral)
+          this._renderParallaxLayers(ctx);
+
+          // 3. World-Space Camera Transform
+          ctx.save();
+          const shakeX = this.cam.shake > 0 ? rand(-this.cam.shake, this.cam.shake) : 0;
+          const shakeY = this.cam.shake > 0 ? rand(-this.cam.shake, this.cam.shake) : 0;
+          ctx.translate(this.width * 0.5 + shakeX, this.height * 0.5 + shakeY);
+          ctx.scale(this.cam.zoom, this.cam.zoom);
+          ctx.translate(-this.cam.x, -this.cam.y);
+
+          // Surface water shimmer & Abyssal floor
+          this._renderWorldBounds(ctx);
+
+          // Ocean Currents
+          this._renderCurrents(ctx);
+
+          // Ambient Drifting Motes
+          this._renderAmbientMotes(ctx);
+
+          // Bioluminescent Pearls
+          this._renderPearls(ctx);
+
+          // Creatures (Prey & Predators)
+          for (let i = 0; i < this.creatures.length; i++) {
+            this._renderCreature(ctx, this.creatures[i]);
+          }
+
+          // Player Minnow
+          if (this.player && this.player.alive) {
+            this._renderPlayer(ctx, this.player);
+          }
+
+          // Shockwaves & Particles
+          this._renderShockwaves(ctx);
+          this._renderParticles(ctx);
+
+          // Floating Score & Event Texts
+          this._renderFloatingTexts(ctx);
+
+          ctx.restore();
+
+          // 4. Screen-Space Overlays (Danger Markers, Vignette, Touch Joystick)
+          this._renderScreenEffects(ctx);
+
+          ctx.restore();
+        }
+
+        _renderBackground(ctx) {
+          const yNorm = clamp(this.cam.y / WORLD_MAX_Y, 0, 0.999);
+          const scaled = yNorm * (DEPTH_ZONES.length - 1);
+          const idx = Math.floor(scaled);
+          const t = scaled - idx;
+          const z1 = DEPTH_ZONES[idx];
+          const z2 = DEPTH_ZONES[Math.min(idx + 1, DEPTH_ZONES.length - 1)];
+
+          const topR = Math.round(lerp(z1.topColor[0], z2.topColor[0], t));
+          const topG = Math.round(lerp(z1.topColor[1], z2.topColor[1], t));
+          const topB = Math.round(lerp(z1.topColor[2], z2.topColor[2], t));
+
+          const botR = Math.round(lerp(z1.botColor[0], z2.botColor[0], t));
+          const botG = Math.round(lerp(z1.botColor[1], z2.botColor[1], t));
+          const botB = Math.round(lerp(z1.botColor[2], z2.botColor[2], t));
+
+          const grad = ctx.createLinearGradient(0, 0, 0, this.height);
+          grad.addColorStop(0, `rgb(${topR}, ${topG}, ${topB})`);
+          grad.addColorStop(1, `rgb(${botR}, ${botG}, ${botB})`);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, this.width, this.height);
+
+          // Surface God-Rays (fade out smoothly as you dive deeper)
+          const rayAlpha = clamp(1 - (this.cam.y - 250) / 1100, 0, 1) * 0.14;
+          if (rayAlpha > 0.005) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            for (let i = 0; i < 6; i++) {
+              const baseX = ((i * 290 - this.cam.x * 0.12) % (this.width + 420) + (this.width + 420)) % (this.width + 420) - 210;
+              const sway = Math.sin(this.worldTime * 0.45 + i * 1.4) * 35;
+              const rayGrad = ctx.createLinearGradient(baseX, 0, baseX + 120 + sway, this.height * 0.85);
+              rayGrad.addColorStop(0, `rgba(125, 249, 255, ${rayAlpha})`);
+              rayGrad.addColorStop(1, 'rgba(125, 249, 255, 0)');
+              ctx.fillStyle = rayGrad;
+              ctx.beginPath();
+              ctx.moveTo(baseX - 35, 0);
+              ctx.lineTo(baseX + 55, 0);
+              ctx.lineTo(baseX + 180 + sway, this.height * 0.9);
+              ctx.lineTo(baseX + 40 + sway, this.height * 0.9);
+              ctx.closePath();
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+        }
+
+        _renderParallaxLayers(ctx) {
+          // Far Silhouette Layer (underwater ridges, arches & sunken ruins)
+          const farSpacing = 520;
+          const farOffsetX = -(this.cam.x * 0.2) % farSpacing;
+          const farBaseY = this.height * 0.86 - (this.cam.y * 0.06) % 120;
+
+          ctx.save();
+          ctx.fillStyle = 'rgba(3, 15, 32, 0.34)';
+          for (let x = farOffsetX - farSpacing; x < this.width + farSpacing; x += farSpacing) {
+            const idx = Math.round((x - farOffsetX + this.cam.x * 0.2) / farSpacing);
+            const h = 110 + Math.abs(Math.sin(idx * 1.7)) * 120;
+            ctx.beginPath();
+            ctx.moveTo(x, this.height);
+            ctx.quadraticCurveTo(x + farSpacing * 0.25, farBaseY - h, x + farSpacing * 0.55, farBaseY - h * 0.45);
+            ctx.quadraticCurveTo(x + farSpacing * 0.8, farBaseY - h * 0.85, x + farSpacing, this.height);
+            ctx.closePath();
+            ctx.fill();
+
+            // Sunken Ruin Pillars when deep in the Trench / Ruins
+            if (this.cam.y > 2100 && Math.abs(idx) % 2 === 0) {
+              const ruinAlpha = clamp((this.cam.y - 2100) / 900, 0, 0.36);
+              ctx.fillStyle = `rgba(8, 26, 48, ${ruinAlpha})`;
+              ctx.fillRect(x + 190, farBaseY - 190, 28, 220);
+              ctx.fillRect(x + 250, farBaseY - 150, 24, 180);
+              // Faint glowing rune on pillar
+              ctx.fillStyle = `rgba(56, 224, 240, ${ruinAlpha * 0.9})`;
+              ctx.fillRect(x + 200, farBaseY - 130, 8, 26);
+              ctx.fillStyle = 'rgba(3, 15, 32, 0.34)';
+            }
+          }
+
+          // Mid Parallax Swaying Kelp Silhouettes (in Shallows & Kelp Reef)
+          if (this.cam.y < 2600) {
+            const kelpAlpha = clamp(1 - (this.cam.y - 1700) / 900, 0, 0.26);
+            const kelpSpacing = 210;
+            const kOff = -(this.cam.x * 0.42) % kelpSpacing;
+            ctx.strokeStyle = `rgba(14, 78, 92, ${kelpAlpha})`;
+            ctx.lineWidth = 7;
+            ctx.lineCap = 'round';
+            for (let x = kOff - kelpSpacing; x < this.width + kelpSpacing; x += kelpSpacing) {
+              const seed = Math.abs(Math.sin((x - kOff + this.cam.x * 0.42) * 0.013));
+              const kelpH = 120 + seed * 150;
+              const sway = Math.sin(this.worldTime * 1.4 + seed * 8) * 24;
+              ctx.beginPath();
+              ctx.moveTo(x, this.height + 20);
+              ctx.bezierCurveTo(
+                x + sway * 0.6, this.height - kelpH * 0.4,
+                x - sway * 0.5, this.height - kelpH * 0.75,
+                x + sway, this.height - kelpH
+              );
+              ctx.stroke();
+            }
+          }
+          ctx.restore();
+        }
+
+        _renderWorldBounds(ctx) {
+          // Ocean Surface Wave Line
+          const viewW = this.width / this.cam.zoom;
+          if (this.cam.y - (this.height * 0.6) / this.cam.zoom < WORLD_MIN_Y + 80) {
+            ctx.save();
+            ctx.beginPath();
+            const startX = this.cam.x - viewW * 0.7;
+            const endX = this.cam.x + viewW * 0.7;
+            ctx.moveTo(startX, WORLD_MIN_Y - 160);
+            for (let x = startX; x <= endX; x += 40) {
+              const waveY = WORLD_MIN_Y - 18 + Math.sin(x * 0.015 + this.worldTime * 2.4) * 7;
+              ctx.lineTo(x, waveY);
+            }
+            ctx.lineTo(endX, WORLD_MIN_Y - 160);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(186, 248, 255, 0.22)';
+            ctx.fill();
+
+            ctx.beginPath();
+            for (let x = startX; x <= endX; x += 36) {
+              const waveY = WORLD_MIN_Y - 18 + Math.sin(x * 0.015 + this.worldTime * 2.4) * 7;
+              if (x === startX) ctx.moveTo(x, waveY);
+              else ctx.lineTo(x, waveY);
+            }
+            ctx.strokeStyle = 'rgba(165, 243, 252, 0.7)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // Abyssal Ocean Floor
+          if (this.cam.y + (this.height * 0.6) / this.cam.zoom > WORLD_MAX_Y - 80) {
+            const startX = this.cam.x - viewW * 0.7;
+            const endX = this.cam.x + viewW * 0.7;
+            ctx.save();
+            ctx.fillStyle = '#020612';
+            ctx.beginPath();
+            ctx.moveTo(startX, WORLD_MAX_Y + 300);
+            for (let x = startX; x <= endX; x += 60) {
+              const bump = Math.sin(x * 0.012) * 16 + Math.cos(x * 0.03) * 8;
+              ctx.lineTo(x, WORLD_MAX_Y + 24 + bump);
+            }
+            ctx.lineTo(endX, WORLD_MAX_Y + 300);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        _renderCurrents(ctx) {
+          ctx.save();
+          for (let i = 0; i < this.currents.length; i++) {
+            const c = this.currents[i];
+            ctx.save();
+            ctx.translate(c.x, c.y);
+            ctx.rotate(c.angle);
+
+            // Soft glowing ribbon backdrop
+            const grad = ctx.createLinearGradient(-c.length * 0.5, 0, c.length * 0.5, 0);
+            grad.addColorStop(0, 'rgba(56, 224, 240, 0)');
+            grad.addColorStop(0.5, 'rgba(56, 224, 240, 0.11)');
+            grad.addColorStop(1, 'rgba(56, 224, 240, 0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.roundRect(-c.length * 0.5, -c.width * 0.5, c.length, c.width, c.width * 0.5);
+            ctx.fill();
+
+            // Animated flowing streamlines
+            ctx.strokeStyle = 'rgba(128, 247, 255, 0.34)';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            for (let lane = -1; lane <= 1; lane++) {
+              const ly = lane * (c.width * 0.26);
+              const offset = ((c.phase * 48 + lane * 60) % 140) - 70;
+              for (let seg = -1; seg <= 1; seg++) {
+                const sx = seg * 140 + offset;
+                if (sx < -c.length * 0.45 || sx > c.length * 0.45) continue;
+                ctx.beginPath();
+                ctx.moveTo(sx - 28, ly);
+                ctx.quadraticCurveTo(sx, ly + Math.sin(c.phase + seg) * 5, sx + 28, ly);
+                ctx.stroke();
+              }
+            }
+            ctx.restore();
+          }
+          ctx.restore();
+        }
+
+        _renderAmbientMotes(ctx) {
+          ctx.save();
+          for (let i = 0; i < this.ambientMotes.length; i++) {
+            const m = this.ambientMotes[i];
+            const twinkle = 0.65 + Math.sin(m.phase * 1.5) * 0.35;
+            ctx.fillStyle = `rgba(148, 238, 255, ${m.alpha * twinkle})`;
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        _renderPearls(ctx) {
+          for (let i = 0; i < this.pearls.length; i++) {
+            const p = this.pearls[i];
+            const bob = Math.sin(p.phase) * 5;
+            ctx.save();
+            ctx.translate(p.x, p.y + bob);
+
+            // Outer bioluminescent halo
+            const halo = ctx.createRadialGradient(0, 0, 2, 0, 0, p.r * 3.2);
+            halo.addColorStop(0, 'rgba(253, 224, 71, 0.55)');
+            halo.addColorStop(0.5, 'rgba(56, 224, 240, 0.22)');
+            halo.addColorStop(1, 'rgba(56, 224, 240, 0)');
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(0, 0, p.r * 3.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pearl Core
+            const core = ctx.createRadialGradient(-3, -3, 1, 0, 0, p.r);
+            core.addColorStop(0, '#ffffff');
+            core.addColorStop(0.55, '#fef08a');
+            core.addColorStop(1, '#38e0f0');
+            ctx.fillStyle = core;
+            ctx.beginPath();
+            ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        _renderPlayer(ctx, p) {
+          const stage = EVOLUTION_STAGES[p.stageIdx];
+          const s = p.size;
+          const wag = Math.sin(p.tailPhase) * 0.28;
+          const eatPop = 1 + p.eatAnim * 0.14;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+          ctx.scale(eatPop, eatPop);
+
+          // Invulnerability blink on spawn
+          if (p.invulnTimer > 0 && p.invulnTimer < 10 && Math.floor(this.worldTime * 12) % 2 === 0) {
+            ctx.globalAlpha = 0.62;
+          }
+
+          // Soft Bioluminescent Aura
+          const auraR = s * (p.dashTimer > 0 ? 3.2 : 2.35);
+          const aura = ctx.createRadialGradient(0, 0, s * 0.2, 0, 0, auraR);
+          aura.addColorStop(0, p.dashTimer > 0 ? 'rgba(128, 247, 255, 0.42)' : 'rgba(56, 224, 240, 0.24)');
+          aura.addColorStop(1, 'rgba(56, 224, 240, 0)');
+          ctx.fillStyle = aura;
+          ctx.beginPath();
+          ctx.arc(0, 0, auraR, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Flowing Tail Fin (evolves in length & elegance with stage)
+          ctx.save();
+          ctx.translate(-s * 0.78, 0);
+          ctx.rotate(wag);
+          const tailLen = s * (0.85 + p.stageIdx * 0.14);
+          const tailSpread = s * (0.58 + p.stageIdx * 0.08);
+          ctx.fillStyle = stage.colorAccent;
+          ctx.globalAlpha *= 0.85;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(-tailLen * 0.55, -tailSpread, -tailLen, -tailSpread * 0.82);
+          ctx.quadraticCurveTo(-tailLen * 0.55, 0, -tailLen, tailSpread * 0.82);
+          ctx.quadraticCurveTo(-tailLen * 0.55, tailSpread, 0, 0);
+          ctx.fill();
+          ctx.restore();
+
+          // Pectoral Side Fins (flutter with swim)
+          const finFlutter = Math.sin(p.tailPhase * 1.1) * 0.22;
+          ctx.fillStyle = stage.colorAccent;
+          ctx.save();
+          ctx.translate(s * 0.05, -s * 0.45);
+          ctx.rotate(-0.45 + finFlutter);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, s * 0.42, s * 0.16, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.translate(s * 0.05, s * 0.45);
+          ctx.rotate(0.45 - finFlutter);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, s * 0.42, s * 0.16, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          // Dorsal Crest (appears from Stage 2+)
+          if (p.stageIdx >= 1) {
+            ctx.fillStyle = p.stageIdx >= 3 ? '#fde047' : stage.colorAccent;
+            ctx.beginPath();
+            ctx.moveTo(s * 0.25, -s * 0.52);
+            ctx.quadraticCurveTo(-s * 0.15, -s * (0.88 + p.stageIdx * 0.07), -s * 0.65, -s * 0.35);
+            ctx.closePath();
+            ctx.fill();
+          }
+
+          // Main Minnow Body
+          const bodyGrad = ctx.createLinearGradient(s, 0, -s, 0);
+          bodyGrad.addColorStop(0, '#ffffff');
+          bodyGrad.addColorStop(0.28, stage.colorMain);
+          bodyGrad.addColorStop(1, '#083344');
+          ctx.fillStyle = bodyGrad;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, s * 1.05, s * 0.56, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Glowing Bioluminescent Stripe / Spots (evolve with stage)
+          ctx.strokeStyle = stage.colorAccent;
+          ctx.lineWidth = Math.max(1.5, s * 0.08);
+          ctx.beginPath();
+          ctx.moveTo(s * 0.3, 0);
+          ctx.quadraticCurveTo(-s * 0.1, Math.sin(p.tailPhase) * s * 0.08, -s * 0.68, 0);
+          ctx.stroke();
+
+          if (p.stageIdx >= 3) {
+            // Stage 4 & 5 Luminous Sovereign Crown Dots
+            ctx.fillStyle = '#fde047';
+            for (let d = 0; d < 3; d++) {
+              ctx.beginPath();
+              ctx.arc(s * (0.15 - d * 0.24), -s * 0.2, s * 0.07, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+
+          // Cute Expressive Eyes
+          const eyeX = s * 0.46;
+          const eyeY = -s * 0.17;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(eyeX, eyeY, s * 0.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#031521';
+          ctx.beginPath();
+          ctx.arc(eyeX + s * 0.06, eyeY, s * 0.11, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Eye catchlight sparkle
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(eyeX + s * 0.09, eyeY - s * 0.05, s * 0.045, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        _renderCreature(ctx, c) {
+          const p = this.player;
+          const isEdible = !p || p.size >= c.size * 0.92 || c.type === 'plankton' || c.type === 'golden';
+          const s = c.size;
+
+          ctx.save();
+          ctx.translate(c.x, c.y);
+
+          // 1. Plankton Mote
+          if (c.type === 'plankton') {
+            const pulse = 0.85 + Math.sin(c.tailPhase * 2) * 0.15;
+            const g = ctx.createRadialGradient(0, 0, 1, 0, 0, s * 2.5);
+            g.addColorStop(0, 'rgba(103, 242, 255, 0.95)');
+            g.addColorStop(0.45, 'rgba(45, 212, 191, 0.35)');
+            g.addColorStop(1, 'rgba(45, 212, 191, 0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 2.5 * pulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#e0f2fe';
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.65, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            return;
+          }
+
+          // 2. Lantern Jellyfish
+          if (c.type === 'jellyfish') {
+            const pulse = Math.sin(c.tailPhase) * 0.14;
+            // Trailing tentacles
+            ctx.strokeStyle = isEdible ? 'rgba(94, 234, 212, 0.55)' : 'rgba(251, 113, 133, 0.65)';
+            ctx.lineWidth = 2;
+            for (let t = -2; t <= 2; t++) {
+              ctx.beginPath();
+              ctx.moveTo(t * s * 0.25, s * 0.15);
+              ctx.quadraticCurveTo(
+                t * s * 0.32 + Math.sin(c.tailPhase + t) * 8,
+                s * 0.9,
+                t * s * 0.22 - Math.sin(c.tailPhase + t) * 10,
+                s * 1.55
+              );
+              ctx.stroke();
+            }
+
+            // Glowing Bell
+            const bellGrad = ctx.createRadialGradient(0, -s * 0.2, s * 0.1, 0, 0, s * 1.15);
+            if (isEdible) {
+              bellGrad.addColorStop(0, '#ccfbf1');
+              bellGrad.addColorStop(0.6, 'rgba(45, 212, 191, 0.75)');
+              bellGrad.addColorStop(1, 'rgba(13, 148, 136, 0.35)');
+            } else {
+              bellGrad.addColorStop(0, '#ffe4e6');
+              bellGrad.addColorStop(0.55, 'rgba(244, 63, 94, 0.78)');
+              bellGrad.addColorStop(1, 'rgba(136, 19, 55, 0.35)');
+            }
+            ctx.fillStyle = bellGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * (1 + pulse), Math.PI, 0);
+            ctx.quadraticCurveTo(s * (1 + pulse), s * 0.32, 0, s * 0.22);
+            ctx.quadraticCurveTo(-s * (1 + pulse), s * 0.32, -s * (1 + pulse), 0);
+            ctx.fill();
+            ctx.restore();
+            return;
+          }
+
+          // 3. Swimming Fish Species (Krill, Tetra, Golden, Barracuda, Angler, Shark)
+          ctx.rotate(c.angle);
+          const wag = Math.sin(c.tailPhase) * 0.26;
+
+          // Subtle Danger Aura for Predators larger than player
+          if (!isEdible) {
+            const dangerHalo = ctx.createRadialGradient(0, 0, s * 0.4, 0, 0, s * 1.85);
+            const isTelegraph = c.aiState === 'telegraph' || c.aiState === 'lunge';
+            dangerHalo.addColorStop(0, isTelegraph ? 'rgba(239, 68, 68, 0.32)' : 'rgba(251, 113, 133, 0.14)');
+            dangerHalo.addColorStop(1, 'rgba(239, 68, 68, 0)');
+            ctx.fillStyle = dangerHalo;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 1.85, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          if (c.type === 'krill') {
+            ctx.fillStyle = '#fda4af';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, s * 1.1, s * 0.45, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff1f2';
+            ctx.beginPath();
+            ctx.arc(s * 0.5, -s * 0.1, s * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (c.type === 'tetra' || c.type === 'golden') {
+            const isGold = c.type === 'golden';
+            // Tail
+            ctx.save();
+            ctx.translate(-s * 0.85, 0);
+            ctx.rotate(wag);
+            ctx.fillStyle = isGold ? '#fef08a' : '#38bdf8';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-s * 0.75, -s * 0.55);
+            ctx.lineTo(-s * 0.75, s * 0.55);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // Body
+            const grad = ctx.createLinearGradient(s, 0, -s, 0);
+            if (isGold) {
+              grad.addColorStop(0, '#ffffff');
+              grad.addColorStop(0.35, '#fde047');
+              grad.addColorStop(1, '#d97706');
+            } else {
+              grad.addColorStop(0, '#e0f2fe');
+              grad.addColorStop(0.45, '#38bdf8');
+              grad.addColorStop(1, '#0369a1');
+            }
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, s * 1.05, s * 0.52, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eye
+            ctx.fillStyle = '#031521';
+            ctx.beginPath();
+            ctx.arc(s * 0.48, -s * 0.12, s * 0.13, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (c.type === 'barracuda') {
+            // Sleek elongated predator
+            ctx.save();
+            ctx.translate(-s * 1.15, 0);
+            ctx.rotate(wag);
+            ctx.fillStyle = isEdible ? '#67e8f9' : '#f59e0b';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-s * 0.7, -s * 0.48);
+            ctx.lineTo(-s * 0.45, 0);
+            ctx.lineTo(-s * 0.7, s * 0.48);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle = isEdible ? '#0e7490' : '#475569';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, s * 1.35, s * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Danger stripe
+            ctx.strokeStyle = isEdible ? '#67e8f9' : '#fb923c';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(s * 0.7, -s * 0.08);
+            ctx.lineTo(-s * 0.8, -s * 0.08);
+            ctx.stroke();
+
+            // Fierce Eye
+            ctx.fillStyle = !isEdible ? (c.aiState === 'telegraph' ? '#ffffff' : '#ef4444') : '#e0f2fe';
+            ctx.beginPath();
+            ctx.arc(s * 0.72, -s * 0.1, s * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (c.type === 'angler') {
+            // Iconic Abyssal Anglerfish with glowing lure
+            ctx.save();
+            ctx.translate(-s * 0.82, 0);
+            ctx.rotate(wag * 0.8);
+            ctx.fillStyle = '#312e81';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-s * 0.65, -s * 0.5);
+            ctx.lineTo(-s * 0.65, s * 0.5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // Round dark body
+            ctx.fillStyle = isEdible ? '#155e75' : '#1e1b4b';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, s * 0.95, s * 0.72, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dangling bioluminescent esca (lure)
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(s * 0.3, -s * 0.62);
+            ctx.quadraticCurveTo(s * 0.95, -s * 1.15, s * 1.28, -s * 0.45);
+            ctx.stroke();
+
+            const lureGlow = ctx.createRadialGradient(s * 1.28, -s * 0.45, 1, s * 1.28, -s * 0.45, s * 0.42);
+            lureGlow.addColorStop(0, '#ffffff');
+            lureGlow.addColorStop(0.4, '#38e0f0');
+            lureGlow.addColorStop(1, 'rgba(56, 224, 240, 0)');
+            ctx.fillStyle = lureGlow;
+            ctx.beginPath();
+            ctx.arc(s * 1.28, -s * 0.45, s * 0.42, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sharp Teeth
+            ctx.fillStyle = '#e2e8f0';
+            ctx.beginPath();
+            ctx.moveTo(s * 0.55, s * 0.25);
+            ctx.lineTo(s * 0.72, s * 0.08);
+            ctx.lineTo(s * 0.82, s * 0.28);
+            ctx.fill();
+
+            // Glowing Predator Eye
+            ctx.fillStyle = !isEdible ? '#fb7185' : '#67e8f9';
+            ctx.beginPath();
+            ctx.arc(s * 0.45, -s * 0.22, s * 0.13, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (c.type === 'shark') {
+            // Deep Shadow Shark
+            ctx.save();
+            ctx.translate(-s * 1.1, 0);
+            ctx.rotate(wag * 0.85);
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-s * 0.85, -s * 0.68);
+            ctx.lineTo(-s * 0.42, 0);
+            ctx.lineTo(-s * 0.68, s * 0.46);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // Iconic Dorsal Fin
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.moveTo(s * 0.15, -s * 0.42);
+            ctx.quadraticCurveTo(-s * 0.1, -s * 1.05, -s * 0.48, -s * 0.36);
+            ctx.closePath();
+            ctx.fill();
+
+            // Pectoral Fins
+            ctx.beginPath();
+            ctx.moveTo(s * 0.25, s * 0.3);
+            ctx.lineTo(-s * 0.35, s * 0.85);
+            ctx.lineTo(-s * 0.25, s * 0.3);
+            ctx.closePath();
+            ctx.fill();
+
+            // Sleek Shark Body
+            const sGrad = ctx.createLinearGradient(0, -s * 0.5, 0, s * 0.5);
+            sGrad.addColorStop(0, '#0f172a');
+            sGrad.addColorStop(0.65, '#1e293b');
+            sGrad.addColorStop(1, '#334155');
+            ctx.fillStyle = sGrad;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, s * 1.28, s * 0.48, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crimson Bioluminescent Gill Slits
+            ctx.strokeStyle = !isEdible ? '#ef4444' : '#38e0f0';
+            ctx.lineWidth = 2.4;
+            for (let g = 0; g < 3; g++) {
+              ctx.beginPath();
+              ctx.moveTo(s * (0.35 - g * 0.12), -s * 0.14);
+              ctx.lineTo(s * (0.32 - g * 0.12), s * 0.16);
+              ctx.stroke();
+            }
+
+            // Piercing Crimson Eye
+            ctx.fillStyle = !isEdible ? '#ff3b5c' : '#67e8f9';
+            ctx.beginPath();
+            ctx.arc(s * 0.72, -s * 0.12, s * 0.095, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Telegraph Attack Glint (clear visual cue before lunging!)
+          if (!isEdible && c.aiState === 'telegraph') {
+            ctx.save();
+            ctx.translate(s * 0.75, -s * 0.14);
+            const glint = 1 + Math.sin(this.worldTime * 35) * 0.35;
+            ctx.strokeStyle = '#fef08a';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(-14 * glint, 0);
+            ctx.lineTo(14 * glint, 0);
+            ctx.moveTo(0, -14 * glint);
+            ctx.lineTo(0, 14 * glint);
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          ctx.restore();
+        }
+
+        _renderShockwaves(ctx) {
+          ctx.save();
+          for (let i = 0; i < this.shockwaves.length; i++) {
+            const s = this.shockwaves[i];
+            const alpha = clamp(s.life / s.maxLife, 0, 1);
+            ctx.strokeStyle = s.color;
+            ctx.globalAlpha = alpha * 0.72;
+            ctx.lineWidth = 3 * alpha + 1;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        _renderParticles(ctx) {
+          ctx.save();
+          for (let i = 0; i < this.particles.length; i++) {
+            const pt = this.particles[i];
+            const alpha = clamp(pt.life / pt.maxLife, 0, 1);
+            ctx.globalAlpha = alpha;
+            if (pt.type === 'bubble') {
+              ctx.strokeStyle = pt.color;
+              ctx.lineWidth = 1.4;
+              ctx.beginPath();
+              ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
+              ctx.stroke();
+            } else {
+              ctx.fillStyle = pt.color;
+              ctx.beginPath();
+              ctx.arc(pt.x, pt.y, pt.r * alpha + 0.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+          ctx.restore();
+        }
+
+        _renderFloatingTexts(ctx) {
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          for (let i = 0; i < this.floatingTexts.length; i++) {
+            const ft = this.floatingTexts[i];
+            const alpha = clamp(ft.life / ft.maxLife, 0, 1);
+            ctx.globalAlpha = alpha;
+            ctx.font = `800 ${Math.round(16 * ft.scale)}px Outfit, sans-serif`;
+            ctx.fillStyle = 'rgba(2, 10, 22, 0.7)';
+            ctx.fillText(ft.text, ft.x + 1.5, ft.y + 1.5);
+            ctx.fillStyle = ft.color;
+            ctx.fillText(ft.text, ft.x, ft.y);
+          }
+          ctx.restore();
+        }
+
+        _renderScreenEffects(ctx) {
+          // Subtle Atmospheric Depth Vignette
+          const vig = ctx.createRadialGradient(
+            this.width * 0.5, this.height * 0.5, Math.min(this.width, this.height) * 0.34,
+            this.width * 0.5, this.height * 0.5, Math.max(this.width, this.height) * 0.72
+          );
+          vig.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          vig.addColorStop(1, 'rgba(1, 6, 16, 0.52)');
+          ctx.fillStyle = vig;
+          ctx.fillRect(0, 0, this.width, this.height);
+
+          // Red Danger Vignette when a predator is actively lunging/telegraphing
+          if (this.dangerPulse > 0.02 && this.state === 'PLAYING') {
+            const dAlpha = this.dangerPulse * (0.22 + Math.sin(this.worldTime * 10) * 0.06);
+            const dVig = ctx.createRadialGradient(
+              this.width * 0.5, this.height * 0.5, Math.min(this.width, this.height) * 0.3,
+              this.width * 0.5, this.height * 0.5, Math.max(this.width, this.height) * 0.68
+            );
+            dVig.addColorStop(0, 'rgba(239, 68, 68, 0)');
+            dVig.addColorStop(1, `rgba(239, 68, 68, ${dAlpha})`);
+            ctx.fillStyle = dVig;
+            ctx.fillRect(0, 0, this.width, this.height);
+          }
+
+          // Off-Screen Predator Edge Warning Chevrons
+          if (this.state === 'PLAYING' && this.player && this.player.alive) {
+            const margin = 34;
+            for (let i = 0; i < this.creatures.length; i++) {
+              const c = this.creatures[i];
+              if (c.size <= this.player.size * 0.92) continue;
+              if (c.aiState !== 'telegraph' && c.aiState !== 'lunge') continue;
+
+              const sx = (c.x - this.cam.x) * this.cam.zoom + this.width * 0.5;
+              const sy = (c.y - this.cam.y) * this.cam.zoom + this.height * 0.5;
+              if (sx > 20 && sx < this.width - 20 && sy > 20 && sy < this.height - 20) continue;
+
+              const ang = Math.atan2(sy - this.height * 0.5, sx - this.width * 0.5);
+              const ix = clamp(sx, margin, this.width - margin);
+              const iy = clamp(sy, margin, this.height - margin);
+
+              ctx.save();
+              ctx.translate(ix, iy);
+              ctx.rotate(ang);
+              ctx.fillStyle = 'rgba(239, 68, 68, 0.88)';
+              ctx.beginPath();
+              ctx.moveTo(12, 0);
+              ctx.lineTo(-8, -8);
+              ctx.lineTo(-4, 0);
+              ctx.lineTo(-8, 8);
+              ctx.closePath();
+              ctx.fill();
+              ctx.restore();
+            }
+          }
+
+          // Touch Virtual Joystick Visual Guide
+          if (this.state === 'PLAYING' && this.touch.active) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(56, 224, 240, 0.38)';
+            ctx.fillStyle = 'rgba(6, 24, 44, 0.28)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.touch.startX, this.touch.startY, 48, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            const dx = this.touch.curX - this.touch.startX;
+            const dy = this.touch.curY - this.touch.startY;
+            const d = Math.hypot(dx, dy);
+            const clampedD = Math.min(d, 44);
+            const kx = this.touch.startX + (d > 0 ? (dx / d) * clampedD : 0);
+            const ky = this.touch.startY + (d > 0 ? (dy / d) * clampedD : 0);
+
+            ctx.fillStyle = 'rgba(103, 242, 255, 0.72)';
+            ctx.beginPath();
+            ctx.arc(kx, ky, 18, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        /* ===================================================================
+           10. MAIN RAF LOOP
+           =================================================================== */
+        startLoop() {
+          this.lastTime = performance.now();
+          const tick = (now) => {
+            const rawDt = Math.min((now - this.lastTime) / 1000, 0.05);
+            this.lastTime = now;
+
+            this.update(rawDt);
+            this.render();
+
+            requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }
+      }
+
+      // Boot Game cleanly on window load
+      window.addEventListener('load', () => {
+        const game = new AbyssMinnowGame();
+        game.startLoop();
+      });
+    })();
+  </script>
+</body>
+</html>
